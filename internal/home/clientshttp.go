@@ -57,16 +57,32 @@ type clientJSON struct {
 	IgnoreStatistics aghalg.NullBool `json:"ignore_statistics"`
 }
 
-// copySchedule returns a copy of weekly schedule from JSON, previous client,
-// or creates new empty schedule.
-func (j *clientJSON) copySchedule(prev *Client) (weekly *schedule.Weekly) {
+// copySettings returns a copy of specific settings from JSON or a previous
+// client.
+func (j *clientJSON) copySettings(
+	prev *Client,
+) (weekly *schedule.Weekly, ignoreQueryLog, ignoreStatistics bool) {
 	if j.Schedule != nil {
-		return j.Schedule.Clone()
+		weekly = j.Schedule.Clone()
 	} else if prev != nil && prev.BlockedServices != nil {
-		return prev.BlockedServices.Schedule.Clone()
+		weekly = prev.BlockedServices.Schedule.Clone()
+	} else {
+		weekly = schedule.EmptyWeekly()
 	}
 
-	return schedule.EmptyWeekly()
+	if j.IgnoreQueryLog != aghalg.NBNull {
+		ignoreQueryLog = j.IgnoreQueryLog == aghalg.NBTrue
+	} else if prev != nil {
+		ignoreQueryLog = prev.IgnoreQueryLog
+	}
+
+	if j.IgnoreStatistics != aghalg.NBNull {
+		ignoreStatistics = j.IgnoreStatistics == aghalg.NBTrue
+	} else if prev != nil {
+		ignoreStatistics = prev.IgnoreStatistics
+	}
+
+	return weekly, ignoreQueryLog, ignoreStatistics
 }
 
 type runtimeClientJSON struct {
@@ -135,7 +151,7 @@ func (clients *clientsContainer) jsonToClient(cj clientJSON, prev *Client) (c *C
 		}
 	}
 
-	weekly := cj.copySchedule(prev)
+	weekly, ignoreQueryLog, ignoreStatistics := cj.copySettings(prev)
 
 	c = &Client{
 		safeSearchConf: safeSearchConf,
@@ -156,18 +172,13 @@ func (clients *clientsContainer) jsonToClient(cj clientJSON, prev *Client) (c *C
 		ParentalEnabled:       cj.ParentalEnabled,
 		SafeBrowsingEnabled:   cj.SafeBrowsingEnabled,
 		UseOwnBlockedServices: !cj.UseGlobalBlockedServices,
+		IgnoreQueryLog:        ignoreQueryLog,
+		IgnoreStatistics:      ignoreStatistics,
 	}
 
-	if cj.IgnoreQueryLog != aghalg.NBNull {
-		c.IgnoreQueryLog = cj.IgnoreQueryLog == aghalg.NBTrue
-	} else if prev != nil {
-		c.IgnoreQueryLog = prev.IgnoreQueryLog
-	}
-
-	if cj.IgnoreStatistics != aghalg.NBNull {
-		c.IgnoreStatistics = cj.IgnoreStatistics == aghalg.NBTrue
-	} else if prev != nil {
-		c.IgnoreStatistics = prev.IgnoreStatistics
+	err = c.BlockedServices.Validate()
+	if err != nil {
+		return nil, fmt.Errorf("validating blocked services: %w", err)
 	}
 
 	if safeSearchConf.Enabled {

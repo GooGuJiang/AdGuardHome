@@ -125,7 +125,10 @@ func (d *DNSFilter) handleBlockedServicesAll(w http.ResponseWriter, r *http.Requ
 	})
 }
 
-// Deprecated:  Use handleBlockedServicesSchedule.
+// handleBlockedServicesList is the handler for the GET
+// /control/blocked_services/list HTTP API.
+//
+// Deprecated:  Use handleBlockedServicesGet.
 func (d *DNSFilter) handleBlockedServicesList(w http.ResponseWriter, r *http.Request) {
 	d.confLock.RLock()
 	list := d.Config.BlockedServices.IDs
@@ -134,7 +137,10 @@ func (d *DNSFilter) handleBlockedServicesList(w http.ResponseWriter, r *http.Req
 	_ = aghhttp.WriteJSONResponse(w, r, list)
 }
 
-// Deprecated:  Use handleBlockedServicesScheduleUpdate.
+// handleBlockedServicesSet is the handler for the POST
+// /control/blocked_services/set HTTP API.
+//
+// Deprecated:  Use handleBlockedServicesUpdate.
 func (d *DNSFilter) handleBlockedServicesSet(w http.ResponseWriter, r *http.Request) {
 	list := []string{}
 	err := json.NewDecoder(r.Body).Decode(&list)
@@ -153,9 +159,9 @@ func (d *DNSFilter) handleBlockedServicesSet(w http.ResponseWriter, r *http.Requ
 	d.Config.ConfigModified()
 }
 
-// handleBlockedServicesSchedule is the handler for the GET
-// /control/blocked_services/schedule HTTP API.
-func (d *DNSFilter) handleBlockedServicesSchedule(w http.ResponseWriter, r *http.Request) {
+// handleBlockedServicesGet is the handler for the GET
+// /control/blocked_services/get HTTP API.
+func (d *DNSFilter) handleBlockedServicesGet(w http.ResponseWriter, r *http.Request) {
 	var bsvc *BlockedServices
 	func() {
 		d.confLock.RLock()
@@ -167,9 +173,9 @@ func (d *DNSFilter) handleBlockedServicesSchedule(w http.ResponseWriter, r *http
 	_ = aghhttp.WriteJSONResponse(w, r, bsvc)
 }
 
-// handleBlockedServicesScheduleUpdate is the handler for the PUT
-// /control/blocked_services/schedule/update HTTP API.
-func (d *DNSFilter) handleBlockedServicesScheduleUpdate(w http.ResponseWriter, r *http.Request) {
+// handleBlockedServicesUpdate is the handler for the PUT
+// /control/blocked_services/update HTTP API.
+func (d *DNSFilter) handleBlockedServicesUpdate(w http.ResponseWriter, r *http.Request) {
 	bsvc := &BlockedServices{}
 	err := json.NewDecoder(r.Body).Decode(bsvc)
 	if err != nil {

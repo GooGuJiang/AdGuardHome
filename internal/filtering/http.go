@@ -565,8 +565,8 @@ func (d *DNSFilter) RegisterFilteringHandlers() {
 	registerHTTP(http.MethodGet, "/control/blocked_services/list", d.handleBlockedServicesList)
 	registerHTTP(http.MethodPost, "/control/blocked_services/set", d.handleBlockedServicesSet)
 
-	registerHTTP(http.MethodGet, "/control/blocked_services/schedule", d.handleBlockedServicesSchedule)
-	registerHTTP(http.MethodPut, "/control/blocked_services/schedule/update", d.handleBlockedServicesScheduleUpdate)
+	registerHTTP(http.MethodGet, "/control/blocked_services/get", d.handleBlockedServicesGet)
+	registerHTTP(http.MethodPut, "/control/blocked_services/update", d.handleBlockedServicesUpdate)
 
 	registerHTTP(http.MethodGet, "/control/filtering/status", d.handleFilteringStatus)
 	registerHTTP(http.MethodPost, "/control/filtering/config", d.handleFilteringConfig)

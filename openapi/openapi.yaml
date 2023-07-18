@@ -1003,7 +1003,7 @@
     'get':
       'deprecated': true
       'description': >
-        Deprecated: Use `GET /blocked_services/schedule` instead.
+        Deprecated: Use `GET /blocked_services/get` instead.
       'tags':
       - 'blocked_services'
       'operationId': 'blockedServicesList'
@@ -1019,7 +1019,7 @@
     'post':
       'deprecated': true
       'description': >
-        Deprecated: Use `PUT /blocked_services/schedule/update` instead.
+        Deprecated: Use `PUT /blocked_services/update` instead.
       'tags':
       - 'blocked_services'
       'operationId': 'blockedServicesSet'
@@ -1032,7 +1032,7 @@
       'responses':
         '200':
           'description': 'OK.'
-  '/blocked_services/schedule':
+  '/blocked_services/get':
     'get':
       'tags':
       - 'blocked_services'
@@ -1045,7 +1045,7 @@
             'application/json':
               'schema':
                 '$ref': '#/components/schemas/BlockedServicesSchedule'
-  '/blocked_services/schedule/update':
+  '/blocked_services/update':
     'put':
       'tags':
       - 'blocked_services'

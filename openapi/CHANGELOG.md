@@ -9,17 +9,17 @@
 ### Deprecated blocked services APIs
 
 * The `GET /control/blocked_services/list` HTTP API; use the new `GET
-  /control/blocked_services/schedule` API instead.
+  /control/blocked_services/get` API instead.
 
 * The `POST /control/blocked_services/set` HTTP API; use the new `PUT
-  /control/blocked_services/schedule/update` API instead.
+  /control/blocked_services/update` API instead.
 
 ### New blocked services APIs
 
-* The new `GET /control/blocked_services/schedule` HTTP API.
+* The new `GET /control/blocked_services/get` HTTP API.
 
-* The new `PUT /control/blocked_services/schedule/update` HTTP API allows
-  config updates.
+* The new `PUT /control/blocked_services/update` HTTP API allows config
+  updates.
 
 These APIs accept and return a JSON object with the following format:
 
