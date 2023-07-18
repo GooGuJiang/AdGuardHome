@@ -72,24 +72,28 @@ func TestStats(t *testing.T) {
 
 	t.Run("data", func(t *testing.T) {
 		const reqDomain = "domain"
+		const respUpstream = "upstream"
 
 		entries := []stats.Entry{{
-			Domain: reqDomain,
-			Client: cliIPStr,
-			Result: stats.RFiltered,
-			Time:   123456,
+			Domain:   reqDomain,
+			Client:   cliIPStr,
+			Result:   stats.RFiltered,
+			Time:     123456,
+			Upstream: respUpstream,
 		}, {
-			Domain: reqDomain,
-			Client: cliIPStr,
-			Result: stats.RNotFiltered,
-			Time:   123456,
+			Domain:   reqDomain,
+			Client:   cliIPStr,
+			Result:   stats.RNotFiltered,
+			Time:     123456,
+			Upstream: respUpstream,
 		}}
 
 		wantData := &stats.StatsResp{
-			TimeUnits:  "hours",
-			TopQueried: []map[string]uint64{0: {reqDomain: 1}},
-			TopClients: []map[string]uint64{0: {cliIPStr: 2}},
-			TopBlocked: []map[string]uint64{0: {reqDomain: 1}},
+			TimeUnits:    "hours",
+			TopQueried:   []map[string]uint64{0: {reqDomain: 1}},
+			TopClients:   []map[string]uint64{0: {cliIPStr: 2}},
+			TopBlocked:   []map[string]uint64{0: {reqDomain: 1}},
+			TopUpstreams: []map[string]uint64{0: {respUpstream: 2}},
 			DNSQueries: []uint64{
 				0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 				0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
@@ -142,6 +146,7 @@ func TestStats(t *testing.T) {
 			TopQueried:           []map[string]uint64{},
 			TopClients:           []map[string]uint64{},
 			TopBlocked:           []map[string]uint64{},
+			TopUpstreams:         []map[string]uint64{},
 			DNSQueries:           _24zeroes[:],
 			BlockedFiltering:     _24zeroes[:],
 			ReplacedSafebrowsing: _24zeroes[:],

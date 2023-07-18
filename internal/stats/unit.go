@@ -20,8 +20,12 @@ import (
 const (
 	// maxDomains is the max number of top domains to return.
 	maxDomains = 100
+
 	// maxClients is the max number of top clients to return.
 	maxClients = 100
+
+	// maxUpstreams is the max number of top upstreams to return.
+	maxUpstreams = 64
 )
 
 // UnitIDGenFunc is the signature of a function that generates a unique ID for
@@ -63,6 +67,9 @@ type Entry struct {
 	// Domain is the domain name requested.
 	Domain string
 
+	// Upstream is the upstream DNS server.
+	Upstream string
+
 	// Result is the result of processing the request.
 	Result Result
 
@@ -81,6 +88,10 @@ type unit struct {
 
 	// clients stores the number of requests from each client.
 	clients map[string]uint64
+
+	// upstreams stores the number of cached responses and responses from each
+	// upstream.
+	upstreams map[string]uint64
 
 	// nResult stores the number of requests grouped by it's result.
 	nResult []uint64
@@ -106,6 +117,7 @@ func newUnit(id uint32) (u *unit) {
 		domains:        map[string]uint64{},
 		blockedDomains: map[string]uint64{},
 		clients:        map[string]uint64{},
+		upstreams:      map[string]uint64{},
 		nResult:        make([]uint64, resultLast),
 		id:             id,
 	}
@@ -134,6 +146,9 @@ type unitDB struct {
 
 	// Clients is the number of requests from each client.
 	Clients []countPair
+
+	// Upstreams is the number of responses from each upstream.
+	Upstreams []countPair
 
 	// NTotal is the total number of requests.
 	NTotal uint64
@@ -223,6 +238,7 @@ func (u *unit) serialize() (udb *unitDB) {
 		Domains:        convertMapToSlice(u.domains, maxDomains),
 		BlockedDomains: convertMapToSlice(u.blockedDomains, maxDomains),
 		Clients:        convertMapToSlice(u.clients, maxClients),
+		Upstreams:      convertMapToSlice(u.upstreams, maxUpstreams),
 		TimeAvg:        timeAvg,
 	}
 }
@@ -262,21 +278,23 @@ func (u *unit) deserialize(udb *unitDB) {
 	u.domains = convertSliceToMap(udb.Domains)
 	u.blockedDomains = convertSliceToMap(udb.BlockedDomains)
 	u.clients = convertSliceToMap(udb.Clients)
+	u.upstreams = convertSliceToMap(udb.Upstreams)
 	u.timeSum = uint64(udb.TimeAvg) * udb.NTotal
 }
 
 // add adds new data to u.  It's safe for concurrent use.
-func (u *unit) add(res Result, domain, cli string, dur uint64) {
-	u.nResult[res]++
-	if res == RNotFiltered {
-		u.domains[domain]++
+func (u *unit) add(e *Entry) {
+	u.nResult[e.Result]++
+	if e.Result == RNotFiltered {
+		u.domains[e.Domain]++
 	} else {
-		u.blockedDomains[domain]++
+		u.blockedDomains[e.Domain]++
 	}
 
-	u.clients[cli]++
-	u.timeSum += dur
+	u.clients[e.Client]++
+	u.timeSum += uint64(e.Time)
 	u.nTotal++
+	u.upstreams[e.Upstream]++
 }
 
 // flushUnitToDB puts udb to the database at id.
@@ -390,9 +408,10 @@ func (s *StatsCtx) getData(limit uint32) (StatsResp, bool) {
 		return StatsResp{
 			TimeUnits: "days",
 
-			TopBlocked: []topAddrs{},
-			TopClients: []topAddrs{},
-			TopQueried: []topAddrs{},
+			TopBlocked:   []topAddrs{},
+			TopClients:   []topAddrs{},
+			TopQueried:   []topAddrs{},
+			TopUpstreams: []topAddrs{},
 
 			BlockedFiltering:     []uint64{},
 			DNSQueries:           []uint64{},
@@ -423,6 +442,7 @@ func (s *StatsCtx) getData(limit uint32) (StatsResp, bool) {
 		ReplacedParental:     statsCollector(units, firstID, timeUnit, func(u *unitDB) (num uint64) { return u.NResult[RParental] }),
 		TopQueried:           topsCollector(units, maxDomains, s.ignored, func(u *unitDB) (pairs []countPair) { return u.Domains }),
 		TopBlocked:           topsCollector(units, maxDomains, s.ignored, func(u *unitDB) (pairs []countPair) { return u.BlockedDomains }),
+		TopUpstreams:         topsCollector(units, maxUpstreams, s.ignored, func(u *unitDB) (pairs []countPair) { return u.Upstreams }),
 		TopClients:           topsCollector(units, maxClients, nil, topClientPairs(s)),
 	}
 

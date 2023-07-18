@@ -282,10 +282,10 @@ func (s *StatsCtx) Update(e Entry) {
 
 	clientID := e.Client
 	if ip := net.ParseIP(clientID); ip != nil {
-		clientID = ip.String()
+		e.Client = ip.String()
 	}
 
-	s.curr.add(e.Result, e.Domain, clientID, uint64(e.Time))
+	s.curr.add(&e)
 }
 
 // WriteDiskConfig implements the Interface interface for *StatsCtx.
