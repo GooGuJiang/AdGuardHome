@@ -153,15 +153,21 @@ func (clients *clientsContainer) jsonToClient(cj clientJSON, prev *Client) (c *C
 
 	weekly, ignoreQueryLog, ignoreStatistics := cj.copySettings(prev)
 
+	bs := &filtering.BlockedServices{
+		Schedule: weekly,
+		IDs:      cj.BlockedServices,
+	}
+	err = bs.Validate()
+	if err != nil {
+		return nil, fmt.Errorf("validating blocked services: %w", err)
+	}
+
 	c = &Client{
 		safeSearchConf: safeSearchConf,
 
 		Name: cj.Name,
 
-		BlockedServices: &filtering.BlockedServices{
-			Schedule: weekly,
-			IDs:      cj.BlockedServices,
-		},
+		BlockedServices: bs,
 
 		IDs:       cj.IDs,
 		Tags:      cj.Tags,
@@ -174,11 +180,6 @@ func (clients *clientsContainer) jsonToClient(cj clientJSON, prev *Client) (c *C
 		UseOwnBlockedServices: !cj.UseGlobalBlockedServices,
 		IgnoreQueryLog:        ignoreQueryLog,
 		IgnoreStatistics:      ignoreStatistics,
-	}
-
-	err = c.BlockedServices.Validate()
-	if err != nil {
-		return nil, fmt.Errorf("validating blocked services: %w", err)
 	}
 
 	if safeSearchConf.Enabled {

@@ -86,28 +86,35 @@ func (t *JSONTime) UnmarshalJSON(b []byte) (err error) {
 	return nil
 }
 
-// WriteJSONOKResponse writes headers with the code 200 OK, encodes v into w,
-// and logs any errors it encounters.  r is used to get additional information
-// from the request.
-func WriteJSONOKResponse(w http.ResponseWriter, r *http.Request, v any) {
-	writeJSONResponse(w, r, v, http.StatusOK)
+// WriteJSONResponse sets the content-type header in w.Header() to
+// "application/json", writes a header with a "200 OK" status, encodes resp to
+// w, calls [Error] on any returned error, and returns it as well.
+func WriteJSONResponse(w http.ResponseWriter, r *http.Request, resp any) (err error) {
+	return WriteJSONResponseCode(w, r, http.StatusOK, resp)
 }
 
-// writeJSONResponse writes headers with code, encodes v into w, and logs any
-// errors it encounters.  r is used to get additional information from the
-// request.
-func writeJSONResponse(w http.ResponseWriter, r *http.Request, v any, code int) {
-	// TODO(a.garipov): Put some of these to a middleware.
+// WriteJSONResponseCode is like [WriteJSONResponse] but adds the ability to
+// redefine the status code.
+func WriteJSONResponseCode(w http.ResponseWriter, r *http.Request, code int, resp any) (err error) {
 	h := w.Header()
 	h.Set(httphdr.ContentType, HdrValApplicationJSON)
 	h.Set(httphdr.Server, UserAgent())
 
 	w.WriteHeader(code)
 
-	err := json.NewEncoder(w).Encode(v)
+	err = json.NewEncoder(w).Encode(resp)
 	if err != nil {
-		log.Error("websvc: writing resp to %s %s: %s", r.Method, r.URL.Path, err)
+		Error(r, w, http.StatusInternalServerError, "encoding resp: %s", err)
 	}
+
+	return err
+}
+
+// WriteJSONOKResponse writes headers with the code 200 OK, encodes v into w,
+// and logs any errors it encounters.  r is used to get additional information
+// from the request.
+func WriteJSONOKResponse(w http.ResponseWriter, r *http.Request, v any) {
+	_ = WriteJSONResponseCode(w, r, http.StatusOK, v)
 }
 
 // ErrorCode is the error code as used by the HTTP API.  See the ErrorCode
@@ -136,8 +143,8 @@ type HTTPAPIErrorResp struct {
 func WriteJSONErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 	log.Error("websvc: %s %s: %s", r.Method, r.URL.Path, err)
 
-	writeJSONResponse(w, r, &HTTPAPIErrorResp{
+	_ = WriteJSONResponseCode(w, r, http.StatusUnprocessableEntity, &HTTPAPIErrorResp{
 		Code: ErrorCodeTMP000,
 		Msg:  err.Error(),
-	}, http.StatusUnprocessableEntity)
+	})
 }
