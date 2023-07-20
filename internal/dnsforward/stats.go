@@ -131,9 +131,6 @@ func (s *Server) logQuery(
 	s.queryLog.Add(p)
 }
 
-// fromCache indicates that response was cached.
-const fromCache = "cache"
-
 // updatesStats writes the request into statistics.
 func (s *Server) updateStats(
 	ctx *dnsContext,
@@ -142,11 +139,10 @@ func (s *Server) updateStats(
 	clientIP string,
 ) {
 	pctx := ctx.proxyCtx
-	e := stats.Entry{
-		Domain:   aghnet.NormalizeDomain(pctx.Req.Question[0].Name),
-		Result:   stats.RNotFiltered,
-		Time:     uint32(elapsed / 1000),
-		Upstream: fromCache,
+	e := &stats.Entry{
+		Domain: aghnet.NormalizeDomain(pctx.Req.Question[0].Name),
+		Result: stats.RNotFiltered,
+		Time:   elapsed,
 	}
 
 	if pctx.Upstream != nil {

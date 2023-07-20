@@ -1742,6 +1742,17 @@
           'type': 'array'
           'items':
             '$ref': '#/components/schemas/TopArrayEntry'
+        'top_upstreams_total':
+          'type': 'array'
+          'description': 'Total number of responses from each upstream'
+          'items':
+            '$ref': '#/components/schemas/TopArrayEntry'
+        'top_upstreams_avg_time':
+          'type': 'array'
+          'description': 'Average processing time in milliseconds of requests
+            from each upstream'
+          'items':
+            '$ref': '#/components/schemas/TopArrayEntry'
         'dns_queries':
           'type': 'array'
           'items':

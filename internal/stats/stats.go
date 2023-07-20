@@ -80,7 +80,7 @@ type Interface interface {
 	io.Closer
 
 	// Update collects the incoming statistics data.
-	Update(e Entry)
+	Update(e *Entry)
 
 	// GetTopClientIP returns at most limit IP addresses corresponding to the
 	// clients with the most number of requests.
@@ -256,8 +256,8 @@ func (s *StatsCtx) Close() (err error) {
 	return udb.flushUnitToDB(tx, s.curr.id)
 }
 
-// Update implements the Interface interface for *StatsCtx.
-func (s *StatsCtx) Update(e Entry) {
+// Update implements the Interface interface for *StatsCtx.  e must not be nil.
+func (s *StatsCtx) Update(e *Entry) {
 	s.confMu.Lock()
 	defer s.confMu.Unlock()
 
@@ -285,7 +285,7 @@ func (s *StatsCtx) Update(e Entry) {
 		e.Client = ip.String()
 	}
 
-	s.curr.add(&e)
+	s.curr.add(e)
 }
 
 // WriteDiskConfig implements the Interface interface for *StatsCtx.

@@ -14,23 +14,25 @@ func TestUnit_Deserialize(t *testing.T) {
 	}{{
 		name: "empty",
 		want: unit{
-			domains:        map[string]uint64{},
-			blockedDomains: map[string]uint64{},
-			clients:        map[string]uint64{},
-			nResult:        []uint64{0, 0, 0, 0, 0, 0},
-			id:             0,
-			nTotal:         0,
-			timeSum:        0,
-			upstreams:      map[string]uint64{},
+			domains:          map[string]uint64{},
+			blockedDomains:   map[string]uint64{},
+			clients:          map[string]uint64{},
+			nResult:          []uint64{0, 0, 0, 0, 0, 0},
+			id:               0,
+			nTotal:           0,
+			timeSum:          0,
+			upstreamsTotal:   map[string]uint64{},
+			upstreamsTimeSum: map[string]uint64{},
 		},
 		db: &unitDB{
-			NResult:        []uint64{0, 0, 0, 0, 0, 0},
-			Domains:        []countPair{},
-			BlockedDomains: []countPair{},
-			Clients:        []countPair{},
-			NTotal:         0,
-			TimeAvg:        0,
-			Upstreams:      []countPair{},
+			NResult:          []uint64{0, 0, 0, 0, 0, 0},
+			Domains:          []countPair{},
+			BlockedDomains:   []countPair{},
+			Clients:          []countPair{},
+			NTotal:           0,
+			TimeAvg:          0,
+			UpstreamsTotal:   []countPair{},
+			UpstreamsTimeSum: []countPair{},
 		},
 	}, {
 		name: "basic",
@@ -48,8 +50,11 @@ func TestUnit_Deserialize(t *testing.T) {
 			id:      0,
 			nTotal:  2,
 			timeSum: 246912,
-			upstreams: map[string]uint64{
+			upstreamsTotal: map[string]uint64{
 				"1.2.3.4": 2,
+			},
+			upstreamsTimeSum: map[string]uint64{
+				"1.2.3.4": 246912,
 			},
 		},
 		db: &unitDB{
@@ -65,18 +70,20 @@ func TestUnit_Deserialize(t *testing.T) {
 			}},
 			NTotal:  2,
 			TimeAvg: 123456,
-			Upstreams: []countPair{{
+			UpstreamsTotal: []countPair{{
 				"1.2.3.4", 2,
+			}},
+			UpstreamsTimeSum: []countPair{{
+				"1.2.3.4", 246912,
 			}},
 		},
 	}}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			got := &unit{}
+			got := unit{}
 			got.deserialize(tc.db)
-			want := tc.want
-			require.Equal(t, &want, got)
+			require.Equal(t, tc.want, got)
 		})
 	}
 }

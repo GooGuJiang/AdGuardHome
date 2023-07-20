@@ -23,10 +23,12 @@ type topAddrs = map[string]uint64
 type StatsResp struct {
 	TimeUnits string `json:"time_units"`
 
-	TopQueried   []topAddrs `json:"top_queried_domains"`
-	TopClients   []topAddrs `json:"top_clients"`
-	TopBlocked   []topAddrs `json:"top_blocked_domains"`
-	TopUpstreams []topAddrs `json:"top_upstreams"`
+	TopQueried []topAddrs `json:"top_queried_domains"`
+	TopClients []topAddrs `json:"top_clients"`
+	TopBlocked []topAddrs `json:"top_blocked_domains"`
+
+	TopUpstreamsTotal   []topAddrs `json:"top_upstreams_total"`
+	TopUpstreamsAvgTime []topAddrs `json:"top_upstreams_avg_time"`
 
 	DNSQueries []uint64 `json:"dns_queries"`
 
