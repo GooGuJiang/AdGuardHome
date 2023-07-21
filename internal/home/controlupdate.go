@@ -33,7 +33,7 @@ func handleVersionJSON(w http.ResponseWriter, r *http.Request) {
 	resp := &versionResponse{}
 	if Context.disableUpdate {
 		resp.Disabled = true
-		_ = aghhttp.WriteJSONResponse(w, r, resp)
+		aghhttp.WriteJSONResponseOK(w, r, resp)
 
 		return
 	}
@@ -68,7 +68,7 @@ func handleVersionJSON(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_ = aghhttp.WriteJSONResponse(w, r, resp)
+	aghhttp.WriteJSONResponseOK(w, r, resp)
 }
 
 // requestVersionInfo sets the VersionInfo field of resp if it can reach the

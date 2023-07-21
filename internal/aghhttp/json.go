@@ -86,35 +86,27 @@ func (t *JSONTime) UnmarshalJSON(b []byte) (err error) {
 	return nil
 }
 
-// WriteJSONResponse sets the content-type header in w.Header() to
-// "application/json", writes a header with a "200 OK" status, encodes resp to
-// w, calls [Error] on any returned error, and returns it as well.
-func WriteJSONResponse(w http.ResponseWriter, r *http.Request, resp any) (err error) {
-	return WriteJSONResponseCode(w, r, http.StatusOK, resp)
-}
-
-// WriteJSONResponseCode is like [WriteJSONResponse] but adds the ability to
-// redefine the status code.
-func WriteJSONResponseCode(w http.ResponseWriter, r *http.Request, code int, resp any) (err error) {
+// WriteJSONResponse writes headers with the code, encodes resp into w, and logs
+// any errors it encounters.  r is used to get additional information from the
+// request.
+func WriteJSONResponse(w http.ResponseWriter, r *http.Request, code int, resp any) {
 	h := w.Header()
 	h.Set(httphdr.ContentType, HdrValApplicationJSON)
 	h.Set(httphdr.Server, UserAgent())
 
 	w.WriteHeader(code)
 
-	err = json.NewEncoder(w).Encode(resp)
+	err := json.NewEncoder(w).Encode(resp)
 	if err != nil {
-		Error(r, w, http.StatusInternalServerError, "encoding resp: %s", err)
+		log.Error("aghhttp: writing json resp to %s %s: %s", r.Method, r.URL.Path, err)
 	}
-
-	return err
 }
 
-// WriteJSONOKResponse writes headers with the code 200 OK, encodes v into w,
+// WriteJSONResponseOK writes headers with the code 200 OK, encodes v into w,
 // and logs any errors it encounters.  r is used to get additional information
 // from the request.
-func WriteJSONOKResponse(w http.ResponseWriter, r *http.Request, v any) {
-	_ = WriteJSONResponseCode(w, r, http.StatusOK, v)
+func WriteJSONResponseOK(w http.ResponseWriter, r *http.Request, v any) {
+	WriteJSONResponse(w, r, http.StatusOK, v)
 }
 
 // ErrorCode is the error code as used by the HTTP API.  See the ErrorCode
@@ -137,13 +129,13 @@ type HTTPAPIErrorResp struct {
 	Msg  string    `json:"msg"`
 }
 
-// WriteJSONErrorResponse encodes err as a JSON error into w, and logs any
+// WriteJSONResponseError encodes err as a JSON error into w, and logs any
 // errors it encounters.  r is used to get additional information from the
 // request.
-func WriteJSONErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
-	log.Error("websvc: %s %s: %s", r.Method, r.URL.Path, err)
+func WriteJSONResponseError(w http.ResponseWriter, r *http.Request, err error) {
+	log.Error("aghhttp: writing json error to %s %s: %s", r.Method, r.URL.Path, err)
 
-	_ = WriteJSONResponseCode(w, r, http.StatusUnprocessableEntity, &HTTPAPIErrorResp{
+	WriteJSONResponse(w, r, http.StatusUnprocessableEntity, &HTTPAPIErrorResp{
 		Code: ErrorCodeTMP000,
 		Msg:  err.Error(),
 	})

@@ -114,11 +114,11 @@ func (d *DNSFilter) ApplyBlockedServicesList(setts *Settings, list []string) {
 }
 
 func (d *DNSFilter) handleBlockedServicesIDs(w http.ResponseWriter, r *http.Request) {
-	_ = aghhttp.WriteJSONResponse(w, r, serviceIDs)
+	aghhttp.WriteJSONResponseOK(w, r, serviceIDs)
 }
 
 func (d *DNSFilter) handleBlockedServicesAll(w http.ResponseWriter, r *http.Request) {
-	_ = aghhttp.WriteJSONResponse(w, r, struct {
+	aghhttp.WriteJSONResponseOK(w, r, struct {
 		BlockedServices []blockedService `json:"blocked_services"`
 	}{
 		BlockedServices: blockedServices,
@@ -134,7 +134,7 @@ func (d *DNSFilter) handleBlockedServicesList(w http.ResponseWriter, r *http.Req
 	list := d.Config.BlockedServices.IDs
 	d.confLock.RUnlock()
 
-	_ = aghhttp.WriteJSONResponse(w, r, list)
+	aghhttp.WriteJSONResponseOK(w, r, list)
 }
 
 // handleBlockedServicesSet is the handler for the POST
@@ -170,7 +170,7 @@ func (d *DNSFilter) handleBlockedServicesGet(w http.ResponseWriter, r *http.Requ
 		bsvc = d.Config.BlockedServices.Clone()
 	}()
 
-	_ = aghhttp.WriteJSONResponse(w, r, bsvc)
+	aghhttp.WriteJSONResponseOK(w, r, bsvc)
 }
 
 // handleBlockedServicesUpdate is the handler for the PUT

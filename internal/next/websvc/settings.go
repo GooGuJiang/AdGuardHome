@@ -27,7 +27,7 @@ func (svc *Service) handleGetSettingsAll(w http.ResponseWriter, r *http.Request)
 	httpConf := webSvc.Config()
 
 	// TODO(a.garipov): Add all currently supported parameters.
-	aghhttp.WriteJSONOKResponse(w, r, &RespGetV1SettingsAll{
+	aghhttp.WriteJSONResponseOK(w, r, &RespGetV1SettingsAll{
 		DNS: &HTTPAPIDNSSettings{
 			Addresses:           dnsConf.Addresses,
 			BootstrapServers:    dnsConf.BootstrapServers,

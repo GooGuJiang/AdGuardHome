@@ -47,7 +47,7 @@ func (svc *Service) handlePatchSettingsHTTP(w http.ResponseWriter, r *http.Reque
 
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		aghhttp.WriteJSONErrorResponse(w, r, fmt.Errorf("decoding: %w", err))
+		aghhttp.WriteJSONResponseError(w, r, fmt.Errorf("decoding: %w", err))
 
 		return
 	}
@@ -62,7 +62,7 @@ func (svc *Service) handlePatchSettingsHTTP(w http.ResponseWriter, r *http.Reque
 		ForceHTTPS:      svc.forceHTTPS,
 	}
 
-	aghhttp.WriteJSONOKResponse(w, r, &HTTPAPIHTTPSettings{
+	aghhttp.WriteJSONResponseOK(w, r, &HTTPAPIHTTPSettings{
 		Addresses:       newConf.Addresses,
 		SecureAddresses: newConf.SecureAddresses,
 		Timeout:         aghhttp.JSONDuration(newConf.Timeout),

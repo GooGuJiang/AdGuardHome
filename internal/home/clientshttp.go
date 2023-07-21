@@ -125,7 +125,7 @@ func (clients *clientsContainer) handleGetClients(w http.ResponseWriter, r *http
 
 	data.Tags = clientTags
 
-	_ = aghhttp.WriteJSONResponse(w, r, data)
+	aghhttp.WriteJSONResponseOK(w, r, data)
 }
 
 // jsonToClient converts JSON object to Client object.
@@ -364,7 +364,7 @@ func (clients *clientsContainer) handleFindClient(w http.ResponseWriter, r *http
 		})
 	}
 
-	_ = aghhttp.WriteJSONResponse(w, r, data)
+	aghhttp.WriteJSONResponseOK(w, r, data)
 }
 
 // findRuntime looks up the IP in runtime and temporary storages, like

@@ -67,7 +67,7 @@ func (s *StatsCtx) handleStats(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_ = aghhttp.WriteJSONResponse(w, r, resp)
+	aghhttp.WriteJSONResponseOK(w, r, resp)
 }
 
 // configResp is the response to the GET /control/stats_info.
@@ -116,7 +116,7 @@ func (s *StatsCtx) handleStatsInfo(w http.ResponseWriter, r *http.Request) {
 		resp.IntervalDays = 0
 	}
 
-	_ = aghhttp.WriteJSONResponse(w, r, resp)
+	aghhttp.WriteJSONResponseOK(w, r, resp)
 }
 
 // handleGetStatsConfig is the handler for the GET /control/stats/config HTTP
@@ -136,7 +136,7 @@ func (s *StatsCtx) handleGetStatsConfig(w http.ResponseWriter, r *http.Request) 
 
 	slices.Sort(resp.Ignored)
 
-	_ = aghhttp.WriteJSONResponse(w, r, resp)
+	aghhttp.WriteJSONResponseOK(w, r, resp)
 }
 
 // handleStatsConfig is the handler for the POST /control/stats_config HTTP API.

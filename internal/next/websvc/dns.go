@@ -54,7 +54,7 @@ func (svc *Service) handlePatchSettingsDNS(w http.ResponseWriter, r *http.Reques
 
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		aghhttp.WriteJSONErrorResponse(w, r, fmt.Errorf("decoding: %w", err))
+		aghhttp.WriteJSONResponseError(w, r, fmt.Errorf("decoding: %w", err))
 
 		return
 	}
@@ -72,7 +72,7 @@ func (svc *Service) handlePatchSettingsDNS(w http.ResponseWriter, r *http.Reques
 	ctx := r.Context()
 	err = svc.confMgr.UpdateDNS(ctx, newConf)
 	if err != nil {
-		aghhttp.WriteJSONErrorResponse(w, r, fmt.Errorf("updating: %w", err))
+		aghhttp.WriteJSONResponseError(w, r, fmt.Errorf("updating: %w", err))
 
 		return
 	}
@@ -80,12 +80,12 @@ func (svc *Service) handlePatchSettingsDNS(w http.ResponseWriter, r *http.Reques
 	newSvc := svc.confMgr.DNS()
 	err = newSvc.Start()
 	if err != nil {
-		aghhttp.WriteJSONErrorResponse(w, r, fmt.Errorf("starting new service: %w", err))
+		aghhttp.WriteJSONResponseError(w, r, fmt.Errorf("starting new service: %w", err))
 
 		return
 	}
 
-	aghhttp.WriteJSONOKResponse(w, r, &HTTPAPIDNSSettings{
+	aghhttp.WriteJSONResponseOK(w, r, &HTTPAPIDNSSettings{
 		Addresses:           newConf.Addresses,
 		BootstrapServers:    newConf.BootstrapServers,
 		UpstreamServers:     newConf.UpstreamServers,
