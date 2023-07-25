@@ -3,6 +3,7 @@ package stats
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -84,6 +85,93 @@ func TestUnit_Deserialize(t *testing.T) {
 			got := unit{}
 			got.deserialize(tc.db)
 			require.Equal(t, tc.want, got)
+		})
+	}
+}
+
+func Test_TopUpstreamsPairs(t *testing.T) {
+	testCases := []struct {
+		db            *unitDB
+		name          string
+		wantResponses []topAddrs
+		wantAvgTime   []topAddrs
+	}{{
+		name: "empty",
+		db: &unitDB{
+			NResult:            []uint64{0, 0, 0, 0, 0, 0},
+			Domains:            []countPair{},
+			BlockedDomains:     []countPair{},
+			Clients:            []countPair{},
+			NTotal:             0,
+			TimeAvg:            0,
+			UpstreamsResponses: []countPair{},
+			UpstreamsTimeSum:   []countPair{},
+		},
+		wantResponses: []topAddrs{},
+		wantAvgTime:   []topAddrs{},
+	}, {
+		name: "basic",
+		db: &unitDB{
+			NResult:        []uint64{0, 0, 0, 0, 0, 0},
+			Domains:        []countPair{},
+			BlockedDomains: []countPair{},
+			Clients:        []countPair{},
+			NTotal:         0,
+			TimeAvg:        0,
+			UpstreamsResponses: []countPair{{
+				"1.2.3.4", 2,
+			}},
+			UpstreamsTimeSum: []countPair{{
+				"1.2.3.4", 246912,
+			}},
+		},
+		wantResponses: []topAddrs{{
+			"1.2.3.4": 2,
+		}},
+		wantAvgTime: []topAddrs{{
+			"1.2.3.4": 123456,
+		}},
+	}, {
+		name: "sorted",
+		db: &unitDB{
+			NResult:        []uint64{0, 0, 0, 0, 0, 0},
+			Domains:        []countPair{},
+			BlockedDomains: []countPair{},
+			Clients:        []countPair{},
+			NTotal:         0,
+			TimeAvg:        0,
+			UpstreamsResponses: []countPair{
+				{"3.3.3.3", 8},
+				{"2.2.2.2", 4},
+				{"4.4.4.4", 16},
+				{"1.1.1.1", 2},
+			},
+			UpstreamsTimeSum: []countPair{
+				{"3.3.3.3", 800},
+				{"2.2.2.2", 40},
+				{"4.4.4.4", 16000},
+				{"1.1.1.1", 2},
+			},
+		},
+		wantResponses: []topAddrs{
+			{"4.4.4.4": 16},
+			{"3.3.3.3": 8},
+			{"2.2.2.2": 4},
+			{"1.1.1.1": 2},
+		},
+		wantAvgTime: []topAddrs{
+			{"1.1.1.1": 1},
+			{"2.2.2.2": 10},
+			{"3.3.3.3": 100},
+			{"4.4.4.4": 1000},
+		},
+	}}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			gotResponses, gotAvgTime := topUpstreamsPairs([]*unitDB{tc.db})
+			assert.Equal(t, tc.wantResponses, gotResponses)
+			assert.Equal(t, tc.wantAvgTime, gotAvgTime)
 		})
 	}
 }

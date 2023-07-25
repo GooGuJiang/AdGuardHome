@@ -13,7 +13,7 @@
 
 * The new optional field `"top_upstrems_avg_time"` in `GET /control/stats`
   method shows the average processing time in milliseconds of requests from
-  each upstream.
+  each upstream in ascending order.
 
 ## v0.107.30: API changes
 

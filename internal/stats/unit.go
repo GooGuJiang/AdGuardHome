@@ -25,7 +25,7 @@ const (
 	maxClients = 100
 
 	// maxUpstreams is the max number of top upstreams to return.
-	maxUpstreams = 64
+	maxUpstreams = 100
 )
 
 // UnitIDGenFunc is the signature of a function that generates a unique ID for
@@ -542,11 +542,21 @@ func topUpstreamsPairs(units []*unitDB) (topUpstreamsResponses, topUpstreamsAvgT
 		}
 	}
 
-	s := convertMapToSlice(upstreamsResponses, maxUpstreams)
-	topUpstreamsResponses = convertTopSlice(s)
+	upstreamsPairs := convertMapToSlice(upstreamsResponses, maxUpstreams)
+	topUpstreamsResponses = convertTopSlice(upstreamsPairs)
 
-	s = convertMapToSlice(upstreamsAvgTime, maxUpstreams)
-	topUpstreamsAvgTime = convertTopSlice(s)
+	// Prepare the list of upstream average processing times by reusing the
+	// list of upstream responses.
+	for i, pair := range upstreamsPairs {
+		upstreamsPairs[i].Count = upstreamsAvgTime[pair.Name]
+	}
+
+	// Sort in ascending order.
+	slices.SortFunc(upstreamsPairs, func(a, b countPair) (sortsBefore bool) {
+		return a.Count < b.Count
+	})
+
+	topUpstreamsAvgTime = convertTopSlice(upstreamsPairs)
 
 	return topUpstreamsResponses, topUpstreamsAvgTime
 }

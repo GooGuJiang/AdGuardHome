@@ -1744,15 +1744,17 @@
             '$ref': '#/components/schemas/TopArrayEntry'
         'top_upstreams_responses':
           'type': 'array'
-          'description': 'Total number of responses from each upstream'
+          'description': 'Total number of responses from each upstream.'
           'items':
             '$ref': '#/components/schemas/TopArrayEntry'
+          'maxItems': 100
         'top_upstreams_avg_time':
           'type': 'array'
           'description': 'Average processing time in milliseconds of requests
-            from each upstream'
+            from each upstream in ascending order.'
           'items':
             '$ref': '#/components/schemas/TopArrayEntry'
+          'maxItems': 100
         'dns_queries':
           'type': 'array'
           'items':
