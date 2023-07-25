@@ -90,12 +90,12 @@ func TestStats(t *testing.T) {
 		}}
 
 		wantData := &stats.StatsResp{
-			TimeUnits:           "hours",
-			TopQueried:          []map[string]uint64{0: {reqDomain: 1}},
-			TopClients:          []map[string]uint64{0: {cliIPStr: 2}},
-			TopBlocked:          []map[string]uint64{0: {reqDomain: 1}},
-			TopUpstreamsTotal:   []map[string]uint64{0: {respUpstream: 2}},
-			TopUpstreamsAvgTime: []map[string]uint64{0: {respUpstream: 123}},
+			TimeUnits:             "hours",
+			TopQueried:            []map[string]uint64{0: {reqDomain: 1}},
+			TopClients:            []map[string]uint64{0: {cliIPStr: 2}},
+			TopBlocked:            []map[string]uint64{0: {reqDomain: 1}},
+			TopUpstreamsResponses: []map[string]uint64{0: {respUpstream: 2}},
+			TopUpstreamsAvgTime:   []map[string]uint64{0: {respUpstream: 123}},
 			DNSQueries: []uint64{
 				0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 				0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
@@ -144,16 +144,16 @@ func TestStats(t *testing.T) {
 
 		_24zeroes := [24]uint64{}
 		emptyData := &stats.StatsResp{
-			TimeUnits:            "hours",
-			TopQueried:           []map[string]uint64{},
-			TopClients:           []map[string]uint64{},
-			TopBlocked:           []map[string]uint64{},
-			TopUpstreamsTotal:    []map[string]uint64{},
-			TopUpstreamsAvgTime:  []map[string]uint64{},
-			DNSQueries:           _24zeroes[:],
-			BlockedFiltering:     _24zeroes[:],
-			ReplacedSafebrowsing: _24zeroes[:],
-			ReplacedParental:     _24zeroes[:],
+			TimeUnits:             "hours",
+			TopQueried:            []map[string]uint64{},
+			TopClients:            []map[string]uint64{},
+			TopBlocked:            []map[string]uint64{},
+			TopUpstreamsResponses: []map[string]uint64{},
+			TopUpstreamsAvgTime:   []map[string]uint64{},
+			DNSQueries:            _24zeroes[:],
+			BlockedFiltering:      _24zeroes[:],
+			ReplacedSafebrowsing:  _24zeroes[:],
+			ReplacedParental:      _24zeroes[:],
 		}
 
 		req = httptest.NewRequest(http.MethodGet, "/control/stats", nil)

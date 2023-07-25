@@ -1742,7 +1742,7 @@
           'type': 'array'
           'items':
             '$ref': '#/components/schemas/TopArrayEntry'
-        'top_upstreams_total':
+        'top_upstreams_responses':
           'type': 'array'
           'description': 'Total number of responses from each upstream'
           'items':

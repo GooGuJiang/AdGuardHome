@@ -89,8 +89,8 @@ type unit struct {
 	// clients stores the number of requests from each client.
 	clients map[string]uint64
 
-	// upstreamsTotal stores the number of responses from each upstream.
-	upstreamsTotal map[string]uint64
+	// upstreamsResponses stores the number of responses from each upstream.
+	upstreamsResponses map[string]uint64
 
 	// upstreamsTimeSum stores the sum of processing time in milliseconds of
 	// responses from each upstream.
@@ -117,13 +117,13 @@ type unit struct {
 // newUnit allocates the new *unit.
 func newUnit(id uint32) (u *unit) {
 	return &unit{
-		domains:          map[string]uint64{},
-		blockedDomains:   map[string]uint64{},
-		clients:          map[string]uint64{},
-		upstreamsTotal:   map[string]uint64{},
-		upstreamsTimeSum: map[string]uint64{},
-		nResult:          make([]uint64, resultLast),
-		id:               id,
+		domains:            map[string]uint64{},
+		blockedDomains:     map[string]uint64{},
+		clients:            map[string]uint64{},
+		upstreamsResponses: map[string]uint64{},
+		upstreamsTimeSum:   map[string]uint64{},
+		nResult:            make([]uint64, resultLast),
+		id:                 id,
 	}
 }
 
@@ -151,8 +151,8 @@ type unitDB struct {
 	// Clients is the number of requests from each client.
 	Clients []countPair
 
-	// UpstreamsTotal is the number of responses from each upstream.
-	UpstreamsTotal []countPair
+	// UpstreamsResponses is the number of responses from each upstream.
+	UpstreamsResponses []countPair
 
 	// UpstreamsTimeSum is the sum of processing time in milliseconds of
 	// responses from each upstream.
@@ -241,14 +241,14 @@ func (u *unit) serialize() (udb *unitDB) {
 	}
 
 	return &unitDB{
-		NTotal:           u.nTotal,
-		NResult:          append([]uint64{}, u.nResult...),
-		Domains:          convertMapToSlice(u.domains, maxDomains),
-		BlockedDomains:   convertMapToSlice(u.blockedDomains, maxDomains),
-		Clients:          convertMapToSlice(u.clients, maxClients),
-		UpstreamsTotal:   convertMapToSlice(u.upstreamsTotal, maxUpstreams),
-		UpstreamsTimeSum: convertMapToSlice(u.upstreamsTimeSum, maxUpstreams),
-		TimeAvg:          timeAvg,
+		NTotal:             u.nTotal,
+		NResult:            append([]uint64{}, u.nResult...),
+		Domains:            convertMapToSlice(u.domains, maxDomains),
+		BlockedDomains:     convertMapToSlice(u.blockedDomains, maxDomains),
+		Clients:            convertMapToSlice(u.clients, maxClients),
+		UpstreamsResponses: convertMapToSlice(u.upstreamsResponses, maxUpstreams),
+		UpstreamsTimeSum:   convertMapToSlice(u.upstreamsTimeSum, maxUpstreams),
+		TimeAvg:            timeAvg,
 	}
 }
 
@@ -287,7 +287,7 @@ func (u *unit) deserialize(udb *unitDB) {
 	u.domains = convertSliceToMap(udb.Domains)
 	u.blockedDomains = convertSliceToMap(udb.BlockedDomains)
 	u.clients = convertSliceToMap(udb.Clients)
-	u.upstreamsTotal = convertSliceToMap(udb.UpstreamsTotal)
+	u.upstreamsResponses = convertSliceToMap(udb.UpstreamsResponses)
 	u.upstreamsTimeSum = convertSliceToMap(udb.UpstreamsTimeSum)
 	u.timeSum = uint64(udb.TimeAvg) * udb.NTotal
 }
@@ -307,7 +307,7 @@ func (u *unit) add(e *Entry) {
 	u.nTotal++
 
 	if e.Upstream != "" {
-		u.upstreamsTotal[e.Upstream]++
+		u.upstreamsResponses[e.Upstream]++
 		u.upstreamsTimeSum[e.Upstream] += uint64(e.Time.Milliseconds())
 	}
 }
@@ -423,11 +423,11 @@ func (s *StatsCtx) getData(limit uint32) (StatsResp, bool) {
 		return StatsResp{
 			TimeUnits: "days",
 
-			TopBlocked:          []topAddrs{},
-			TopClients:          []topAddrs{},
-			TopQueried:          []topAddrs{},
-			TopUpstreamsTotal:   []topAddrs{},
-			TopUpstreamsAvgTime: []topAddrs{},
+			TopBlocked:            []topAddrs{},
+			TopClients:            []topAddrs{},
+			TopQueried:            []topAddrs{},
+			TopUpstreamsResponses: []topAddrs{},
+			TopUpstreamsAvgTime:   []topAddrs{},
 
 			BlockedFiltering:     []uint64{},
 			DNSQueries:           []uint64{},
@@ -451,25 +451,25 @@ func (s *StatsCtx) getData(limit uint32) (StatsResp, bool) {
 		log.Fatalf("len(dnsQueries) != limit: %d %d", len(dnsQueries), limit)
 	}
 
-	topUpstreamsTotal, topUpstreamsAvgTime := topUpstreamsPairs(units)
+	topUpstreamsResponses, topUpstreamsAvgTime := topUpstreamsPairs(units)
 
 	data := StatsResp{
-		DNSQueries:           dnsQueries,
-		BlockedFiltering:     statsCollector(units, firstID, timeUnit, func(u *unitDB) (num uint64) { return u.NResult[RFiltered] }),
-		ReplacedSafebrowsing: statsCollector(units, firstID, timeUnit, func(u *unitDB) (num uint64) { return u.NResult[RSafeBrowsing] }),
-		ReplacedParental:     statsCollector(units, firstID, timeUnit, func(u *unitDB) (num uint64) { return u.NResult[RParental] }),
-		TopQueried:           topsCollector(units, maxDomains, s.ignored, func(u *unitDB) (pairs []countPair) { return u.Domains }),
-		TopBlocked:           topsCollector(units, maxDomains, s.ignored, func(u *unitDB) (pairs []countPair) { return u.BlockedDomains }),
-		TopUpstreamsTotal:    topUpstreamsTotal,
-		TopUpstreamsAvgTime:  topUpstreamsAvgTime,
-		TopClients:           topsCollector(units, maxClients, nil, topClientPairs(s)),
+		DNSQueries:            dnsQueries,
+		BlockedFiltering:      statsCollector(units, firstID, timeUnit, func(u *unitDB) (num uint64) { return u.NResult[RFiltered] }),
+		ReplacedSafebrowsing:  statsCollector(units, firstID, timeUnit, func(u *unitDB) (num uint64) { return u.NResult[RSafeBrowsing] }),
+		ReplacedParental:      statsCollector(units, firstID, timeUnit, func(u *unitDB) (num uint64) { return u.NResult[RParental] }),
+		TopQueried:            topsCollector(units, maxDomains, s.ignored, func(u *unitDB) (pairs []countPair) { return u.Domains }),
+		TopBlocked:            topsCollector(units, maxDomains, s.ignored, func(u *unitDB) (pairs []countPair) { return u.BlockedDomains }),
+		TopUpstreamsResponses: topUpstreamsResponses,
+		TopUpstreamsAvgTime:   topUpstreamsAvgTime,
+		TopClients:            topsCollector(units, maxClients, nil, topClientPairs(s)),
 	}
 
 	// Total counters:
 	sum := unitDB{
 		NResult: make([]uint64, resultLast),
 	}
-	timeN := 0
+	var timeN uint32
 	for _, u := range units {
 		sum.NTotal += u.NTotal
 		sum.TimeAvg += u.TimeAvg
@@ -489,8 +489,9 @@ func (s *StatsCtx) getData(limit uint32) (StatsResp, bool) {
 	data.NumReplacedParental = sum.NResult[RParental]
 
 	if timeN != 0 {
-		// NOTE:  From microseconds to seconds.
-		data.AvgProcessingTime = float64(sum.TimeAvg/uint32(timeN)) / 1_000_000
+		// NOTE:  Converting from microseconds to seconds for compatibility
+		// reasons.
+		data.AvgProcessingTime = float64(sum.TimeAvg/timeN) / float64(time.Millisecond)
 	}
 
 	data.TimeUnits = "hours"
@@ -517,13 +518,13 @@ func topClientPairs(s *StatsCtx) (pg pairsGetter) {
 
 // topUpstreamsPairs returns sorted lists of number of total responses and sum
 // of processing times for each upstream.
-func topUpstreamsPairs(units []*unitDB) (topUpstreamsTotal, topUpstreamsAvgTime []topAddrs) {
-	upstreamsTotal := topAddrs{}
+func topUpstreamsPairs(units []*unitDB) (topUpstreamsResponses, topUpstreamsAvgTime []topAddrs) {
+	upstreamsResponses := topAddrs{}
 	upstreamsTimeSum := topAddrs{}
 
 	for _, u := range units {
-		for _, cp := range u.UpstreamsTotal {
-			upstreamsTotal[cp.Name] += cp.Count
+		for _, cp := range u.UpstreamsResponses {
+			upstreamsResponses[cp.Name] += cp.Count
 		}
 
 		for _, cp := range u.UpstreamsTimeSum {
@@ -533,7 +534,7 @@ func topUpstreamsPairs(units []*unitDB) (topUpstreamsTotal, topUpstreamsAvgTime 
 
 	upstreamsAvgTime := make(topAddrs)
 
-	for u, n := range upstreamsTotal {
+	for u, n := range upstreamsResponses {
 		total := upstreamsTimeSum[u]
 
 		if total != 0 {
@@ -541,11 +542,11 @@ func topUpstreamsPairs(units []*unitDB) (topUpstreamsTotal, topUpstreamsAvgTime 
 		}
 	}
 
-	s := convertMapToSlice(upstreamsTotal, maxUpstreams)
-	topUpstreamsTotal = convertTopSlice(s)
+	s := convertMapToSlice(upstreamsResponses, maxUpstreams)
+	topUpstreamsResponses = convertTopSlice(s)
 
 	s = convertMapToSlice(upstreamsAvgTime, maxUpstreams)
 	topUpstreamsAvgTime = convertTopSlice(s)
 
-	return topUpstreamsTotal, topUpstreamsAvgTime
+	return topUpstreamsResponses, topUpstreamsAvgTime
 }
