@@ -28,7 +28,13 @@ NOTE: Add new changes BELOW THIS COMMENT.
 - Two new metrics showing total number of responses from each upstream DNS
   server and their average processing time in the Web UI ([#1453]).
 
+### Fixed
+
+- Client hostnames not resolving when upstream server responds with zero-TTL
+  records ([#6046]).
+
 [#1453]: https://github.com/AdguardTeam/AdGuardHome/issues/1453
+[#6046]: https://github.com/AdguardTeam/AdGuardHome/issues/6046
 
 <!--
 NOTE: Add new changes ABOVE THIS COMMENT.
