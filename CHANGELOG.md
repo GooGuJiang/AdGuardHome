@@ -23,6 +23,11 @@ See also the [v0.107.35 GitHub milestone][ms-v0.107.35].
 NOTE: Add new changes BELOW THIS COMMENT.
 -->
 
+### Added
+
+- Two new metrics showing total number of responses from each upstream DNS
+  server and their average processing time in the Web UI ([#1453]).
+
 ### Fixed
 
 - `bufio.Scanner: token too long` and other errors when trying to add
@@ -34,6 +39,7 @@ NOTE: Add new changes BELOW THIS COMMENT.
 - Default exposure of the non-standard ports 784 and 8853 for DNS-over-QUIC in
   the `Dockerfile`.
 
+[#1453]: https://github.com/AdguardTeam/AdGuardHome/issues/1453
 [#6003]: https://github.com/AdguardTeam/AdGuardHome/issues/6003
 
 <!--

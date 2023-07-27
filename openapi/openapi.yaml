@@ -1728,7 +1728,7 @@
         'avg_processing_time':
           'type': 'number'
           'format': 'float'
-          'description': 'Average time in milliseconds on processing a DNS'
+          'description': 'Average time in seconds on processing a DNS request'
           'example': 0.34
         'top_queried_domains':
           'type': 'array'
@@ -1751,7 +1751,7 @@
         'top_upstreams_avg_time':
           'type': 'array'
           'description': 'Average processing time in milliseconds of requests
-            from each upstream in ascending order.'
+            from each upstream.'
           'items':
             '$ref': '#/components/schemas/TopArrayEntry'
           'maxItems': 100

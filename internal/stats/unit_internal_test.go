@@ -89,7 +89,7 @@ func TestUnit_Deserialize(t *testing.T) {
 	}
 }
 
-func Test_TopUpstreamsPairs(t *testing.T) {
+func TestTopUpstreamsPairs(t *testing.T) {
 	testCases := []struct {
 		db            *unitDB
 		name          string
@@ -129,7 +129,7 @@ func Test_TopUpstreamsPairs(t *testing.T) {
 			"1.2.3.4": 2,
 		}},
 		wantAvgTime: []topAddrs{{
-			"1.2.3.4": 123456,
+			"1.2.3.4": 123,
 		}},
 	}, {
 		name: "sorted",
@@ -147,10 +147,10 @@ func Test_TopUpstreamsPairs(t *testing.T) {
 				{"1.1.1.1", 2},
 			},
 			UpstreamsTimeSum: []countPair{
-				{"3.3.3.3", 800},
-				{"2.2.2.2", 40},
-				{"4.4.4.4", 16000},
-				{"1.1.1.1", 2},
+				{"3.3.3.3", 800_000},
+				{"2.2.2.2", 40_000},
+				{"4.4.4.4", 16_000_000},
+				{"1.1.1.1", 2_000},
 			},
 		},
 		wantResponses: []topAddrs{
@@ -160,10 +160,10 @@ func Test_TopUpstreamsPairs(t *testing.T) {
 			{"1.1.1.1": 2},
 		},
 		wantAvgTime: []topAddrs{
-			{"1.1.1.1": 1},
-			{"2.2.2.2": 10},
-			{"3.3.3.3": 100},
 			{"4.4.4.4": 1000},
+			{"3.3.3.3": 100},
+			{"2.2.2.2": 10},
+			{"1.1.1.1": 1},
 		},
 	}}
 

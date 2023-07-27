@@ -6,14 +6,13 @@
 
 ## v0.107.36: API changes
 
-### The new fields `"top_upstreams_responses"` and `"top_upstreams_avg_time"` in `Stats`
+### The new fields `"top_upstreams_responses"` and `"top_upstreams_avg_time"` in `Stats` object
 
-* The new optional field `"top_upstreams_responses"` in `GET /control/stats`
-  method shows the total number of responses from each upstream.
+* The new field `"top_upstreams_responses"` in `GET /control/stats` method
+  shows the total number of responses from each upstream.
 
-* The new optional field `"top_upstrems_avg_time"` in `GET /control/stats`
-  method shows the average processing time in milliseconds of requests from
-  each upstream in ascending order.
+* The new field `"top_upstrems_avg_time"` in `GET /control/stats` method shows
+  the average processing time in milliseconds of requests from each upstream.
 
 ## v0.107.30: API changes
 

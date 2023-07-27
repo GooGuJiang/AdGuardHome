@@ -92,7 +92,7 @@ type unit struct {
 	// upstreamsResponses stores the number of responses from each upstream.
 	upstreamsResponses map[string]uint64
 
-	// upstreamsTimeSum stores the sum of processing time in milliseconds of
+	// upstreamsTimeSum stores the sum of processing time in microseconds of
 	// responses from each upstream.
 	upstreamsTimeSum map[string]uint64
 
@@ -154,14 +154,14 @@ type unitDB struct {
 	// UpstreamsResponses is the number of responses from each upstream.
 	UpstreamsResponses []countPair
 
-	// UpstreamsTimeSum is the sum of processing time in milliseconds of
+	// UpstreamsTimeSum is the sum of processing time in microseconds of
 	// responses from each upstream.
 	UpstreamsTimeSum []countPair
 
 	// NTotal is the total number of requests.
 	NTotal uint64
 
-	// TimeAvg is the average of processing times in milliseconds of all the
+	// TimeAvg is the average of processing times in microseconds of all the
 	// requests in the unit.
 	TimeAvg uint32
 }
@@ -302,13 +302,13 @@ func (u *unit) add(e *Entry) {
 	}
 
 	u.clients[e.Client]++
-	// NOTE:  Microseconds for compatibility reasons.
-	u.timeSum += uint64(e.Time.Microseconds())
+	t := uint64(e.Time.Microseconds())
+	u.timeSum += t
 	u.nTotal++
 
 	if e.Upstream != "" {
 		u.upstreamsResponses[e.Upstream]++
-		u.upstreamsTimeSum[e.Upstream] += uint64(e.Time.Milliseconds())
+		u.upstreamsTimeSum[e.Upstream] += t
 	}
 }
 
@@ -538,24 +538,15 @@ func topUpstreamsPairs(units []*unitDB) (topUpstreamsResponses, topUpstreamsAvgT
 		total := upstreamsTimeSum[u]
 
 		if total != 0 {
-			upstreamsAvgTime[u] = total / n
+			// Calculate average and convert from microseconds to milliseconds.
+			upstreamsAvgTime[u] = total / n / uint64(time.Microsecond)
 		}
 	}
 
 	upstreamsPairs := convertMapToSlice(upstreamsResponses, maxUpstreams)
 	topUpstreamsResponses = convertTopSlice(upstreamsPairs)
 
-	// Prepare the list of upstream average processing times by reusing the
-	// list of upstream responses.
-	for i, pair := range upstreamsPairs {
-		upstreamsPairs[i].Count = upstreamsAvgTime[pair.Name]
-	}
-
-	// Sort in ascending order.
-	slices.SortFunc(upstreamsPairs, func(a, b countPair) (sortsBefore bool) {
-		return a.Count < b.Count
-	})
-
+	upstreamsPairs = convertMapToSlice(upstreamsAvgTime, maxUpstreams)
 	topUpstreamsAvgTime = convertTopSlice(upstreamsPairs)
 
 	return topUpstreamsResponses, topUpstreamsAvgTime
