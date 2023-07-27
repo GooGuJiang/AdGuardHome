@@ -12,11 +12,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AdguardTeam/AdGuardHome/internal/aghtest"
 	"github.com/AdguardTeam/AdGuardHome/internal/next/agh"
 	"github.com/AdguardTeam/AdGuardHome/internal/next/dnssvc"
 	"github.com/AdguardTeam/AdGuardHome/internal/next/websvc"
 	"github.com/AdguardTeam/golibs/testutil"
+	"github.com/AdguardTeam/golibs/testutil/fakefs"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -89,8 +89,11 @@ func newTestServer(
 	t.Helper()
 
 	c := &websvc.Config{
+		Pprof: &websvc.PprofConfig{
+			Enabled: false,
+		},
 		ConfigManager: confMgr,
-		Frontend: &aghtest.FS{
+		Frontend: &fakefs.FS{
 			OnOpen: func(_ string) (_ fs.File, _ error) { return nil, fs.ErrNotExist },
 		},
 		TLS:             nil,
