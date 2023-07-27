@@ -528,7 +528,8 @@ func topUpstreamsPairs(units []*unitDB) (topUpstreamsResponses, topUpstreamsAvgT
 		}
 
 		for _, cp := range u.UpstreamsTimeSum {
-			upstreamsTimeSum[cp.Name] += cp.Count
+			// Convert from microseconds to milliseconds and calculate the sum.
+			upstreamsTimeSum[cp.Name] += cp.Count / uint64(time.Microsecond)
 		}
 	}
 
@@ -539,7 +540,7 @@ func topUpstreamsPairs(units []*unitDB) (topUpstreamsResponses, topUpstreamsAvgT
 
 		if total != 0 {
 			// Calculate average and convert from microseconds to milliseconds.
-			upstreamsAvgTime[u] = total / n / uint64(time.Microsecond)
+			upstreamsAvgTime[u] = total / n
 		}
 	}
 
