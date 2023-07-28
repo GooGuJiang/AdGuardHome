@@ -2,6 +2,7 @@ package dnsforward
 
 import (
 	"net"
+	"net/netip"
 	"testing"
 
 	"github.com/AdguardTeam/AdGuardHome/internal/aghtest"
@@ -45,7 +46,11 @@ func TestHandleDNSRequest_filterDNSResponse(t *testing.T) {
 	f.SetEnabled(true)
 
 	s, err := NewServer(DNSCreateParams{
-		DHCPServer:  testDHCP,
+		DHCPServer: &testDHCP{
+			OnEnabled:  func() (ok bool) { return false },
+			OnHostByIP: func(ip netip.Addr) (host string) { panic("not implemented") },
+			OnIPByHost: func(host string) (ip netip.Addr) { panic("not implemented") },
+		},
 		DNSFilter:   f,
 		PrivateNets: netutil.SubnetSetFunc(netutil.IsLocallyServed),
 	})
