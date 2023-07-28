@@ -94,7 +94,7 @@ func TestTopUpstreamsPairs(t *testing.T) {
 		db            *unitDB
 		name          string
 		wantResponses []topAddrs
-		wantAvgTime   []topAddrs
+		wantAvgTime   []topAddrsFloat
 	}{{
 		name: "empty",
 		db: &unitDB{
@@ -108,7 +108,7 @@ func TestTopUpstreamsPairs(t *testing.T) {
 			UpstreamsTimeSum:   []countPair{},
 		},
 		wantResponses: []topAddrs{},
-		wantAvgTime:   []topAddrs{},
+		wantAvgTime:   []topAddrsFloat{},
 	}, {
 		name: "basic",
 		db: &unitDB{
@@ -128,8 +128,8 @@ func TestTopUpstreamsPairs(t *testing.T) {
 		wantResponses: []topAddrs{{
 			"1.2.3.4": 2,
 		}},
-		wantAvgTime: []topAddrs{{
-			"1.2.3.4": 123,
+		wantAvgTime: []topAddrsFloat{{
+			"1.2.3.4": 0.123456,
 		}},
 	}, {
 		name: "sorted",
@@ -147,10 +147,10 @@ func TestTopUpstreamsPairs(t *testing.T) {
 				{"1.1.1.1", 2},
 			},
 			UpstreamsTimeSum: []countPair{
-				{"3.3.3.3", 800_000},
-				{"2.2.2.2", 40_000},
-				{"4.4.4.4", 16_000_000},
-				{"1.1.1.1", 2_000},
+				{"3.3.3.3", 800_000_000},
+				{"2.2.2.2", 40_000_000},
+				{"4.4.4.4", 16_000_000_000},
+				{"1.1.1.1", 2_000_000},
 			},
 		},
 		wantResponses: []topAddrs{
@@ -159,7 +159,7 @@ func TestTopUpstreamsPairs(t *testing.T) {
 			{"2.2.2.2": 4},
 			{"1.1.1.1": 2},
 		},
-		wantAvgTime: []topAddrs{
+		wantAvgTime: []topAddrsFloat{
 			{"4.4.4.4": 1000},
 			{"3.3.3.3": 100},
 			{"2.2.2.2": 10},

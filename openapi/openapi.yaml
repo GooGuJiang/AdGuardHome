@@ -1750,8 +1750,8 @@
           'maxItems': 100
         'top_upstreams_avg_time':
           'type': 'array'
-          'description': 'Average processing time in milliseconds of requests
-            from each upstream.'
+          'description': 'Average processing time in seconds of requests from
+            each upstream.'
           'items':
             '$ref': '#/components/schemas/TopArrayEntry'
           'maxItems': 100

@@ -11,6 +11,7 @@ import (
 	"github.com/AdguardTeam/golibs/log"
 	"github.com/AdguardTeam/golibs/stringutil"
 	"go.etcd.io/bbolt"
+	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
 )
 
@@ -427,7 +428,7 @@ func (s *StatsCtx) getData(limit uint32) (StatsResp, bool) {
 			TopClients:            []topAddrs{},
 			TopQueried:            []topAddrs{},
 			TopUpstreamsResponses: []topAddrs{},
-			TopUpstreamsAvgTime:   []topAddrs{},
+			TopUpstreamsAvgTime:   []topAddrsFloat{},
 
 			BlockedFiltering:     []uint64{},
 			DNSQueries:           []uint64{},
@@ -516,11 +517,13 @@ func topClientPairs(s *StatsCtx) (pg pairsGetter) {
 	}
 }
 
-// topUpstreamsPairs returns sorted lists of number of total responses and sum
-// of processing times for each upstream.
-func topUpstreamsPairs(units []*unitDB) (topUpstreamsResponses, topUpstreamsAvgTime []topAddrs) {
+// topUpstreamsPairs returns sorted lists of number of total responses and the
+// average of processing time for each upstream.
+func topUpstreamsPairs(
+	units []*unitDB,
+) (topUpstreamsResponses []topAddrs, topUpstreamsAvgTime []topAddrsFloat) {
 	upstreamsResponses := topAddrs{}
-	upstreamsTimeSum := topAddrs{}
+	upstreamsTimeSum := topAddrsFloat{}
 
 	for _, u := range units {
 		for _, cp := range u.UpstreamsResponses {
@@ -528,27 +531,42 @@ func topUpstreamsPairs(units []*unitDB) (topUpstreamsResponses, topUpstreamsAvgT
 		}
 
 		for _, cp := range u.UpstreamsTimeSum {
-			// Convert from microseconds to milliseconds and calculate the sum.
-			upstreamsTimeSum[cp.Name] += cp.Count / uint64(time.Microsecond)
+			// Convert from microseconds to seconds and calculate the sum.
+			upstreamsTimeSum[cp.Name] += float64(cp.Count) / float64(time.Millisecond)
 		}
 	}
 
-	upstreamsAvgTime := make(topAddrs)
+	upstreamsAvgTime := topAddrsFloat{}
 
 	for u, n := range upstreamsResponses {
 		total := upstreamsTimeSum[u]
 
 		if total != 0 {
-			// Calculate average and convert from microseconds to milliseconds.
-			upstreamsAvgTime[u] = total / n
+			upstreamsAvgTime[u] = total / float64(n)
 		}
 	}
 
 	upstreamsPairs := convertMapToSlice(upstreamsResponses, maxUpstreams)
 	topUpstreamsResponses = convertTopSlice(upstreamsPairs)
 
-	upstreamsPairs = convertMapToSlice(upstreamsAvgTime, maxUpstreams)
-	topUpstreamsAvgTime = convertTopSlice(upstreamsPairs)
+	return topUpstreamsResponses, prepareTopUpstreamsAvgTime(upstreamsAvgTime)
+}
 
-	return topUpstreamsResponses, topUpstreamsAvgTime
+// prepareTopUpstreamsAvgTime returns sorted list of average processing times
+// of the DNS requests from each upstream.
+func prepareTopUpstreamsAvgTime(
+	upstreamsAvgTime topAddrsFloat,
+) (topUpstreamsAvgTime []topAddrsFloat) {
+	keys := maps.Keys(upstreamsAvgTime)
+
+	slices.SortFunc(keys, func(a, b string) (sortsBefore bool) {
+		return upstreamsAvgTime[a] > upstreamsAvgTime[b]
+	})
+
+	topUpstreamsAvgTime = make([]topAddrsFloat, 0, len(upstreamsAvgTime))
+	for _, k := range keys {
+		topUpstreamsAvgTime = append(topUpstreamsAvgTime, topAddrsFloat{k: upstreamsAvgTime[k]})
+	}
+
+	return topUpstreamsAvgTime
 }

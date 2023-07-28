@@ -12,7 +12,7 @@
   shows the total number of responses from each upstream.
 
 * The new field `"top_upstrems_avg_time"` in `GET /control/stats` method shows
-  the average processing time in milliseconds of requests from each upstream.
+  the average processing time in seconds of requests from each upstream.
 
 ## v0.107.30: API changes
 
