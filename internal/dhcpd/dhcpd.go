@@ -384,8 +384,6 @@ func (s *server) Leases() (leases []*dhcpsvc.Lease) {
 
 // MACByIP returns a MAC address by the IP address of its lease, if there is
 // one.
-//
-// TODO(e.burkov):  !! use indexes
 func (s *server) MACByIP(ip netip.Addr) (mac net.HardwareAddr) {
 	if ip.Is4() {
 		return s.srv4.FindMACbyIP(ip)
@@ -416,66 +414,3 @@ func (s *server) IPByHost(host string) (ip netip.Addr) {
 func (s *server) AddStaticLease(l *Lease) error {
 	return s.srv4.AddStaticLease(l)
 }
-
-// hostToIPTable is a convenient type alias for tables of host names to an IP
-// address.
-//
-// TODO(e.burkov):  !! Use.
-// type hostToIPTable = map[string]netip.Addr
-
-// ipToHostTable is a convenient type alias for tables of IP addresses to their
-// host names.  For example, for use with PTR queries.
-//
-// TODO(e.burkov):  !! Use.
-// type ipToHostTable = map[netip.Addr]string
-
-// TODO(e.burkov):  !! Use.
-// func (s *Server) onDHCPLeaseChanged(flags int) {
-// 	switch flags {
-// 	case dhcpd.LeaseChangedAdded,
-// 		dhcpd.LeaseChangedAddedStatic,
-// 		dhcpd.LeaseChangedRemovedStatic:
-// 		// Go on.
-// 	case dhcpd.LeaseChangedRemovedAll:
-// 		s.setTableHostToIP(nil)
-// 		s.setTableIPToHost(nil)
-
-// 		return
-// 	default:
-// 		return
-// 	}
-
-// 	ll := s.dhcpServer.Leases(dhcpd.LeasesAll)
-// 	hostToIP := make(hostToIPTable, len(ll))
-// 	ipToHost := make(ipToHostTable, len(ll))
-
-// 	for _, l := range ll {
-// 		// TODO(a.garipov): Remove this after we're finished with the client
-// 		// hostname validations in the DHCP server code.
-// 		err := netutil.ValidateHostname(l.Hostname)
-// 		if err != nil {
-// 			log.Debug("dnsforward: skipping invalid hostname %q from dhcp: %s", l.Hostname, err)
-
-// 			continue
-// 		}
-
-// 		lowhost := strings.ToLower(l.Hostname + "." + s.localDomainSuffix)
-
-// 		// Assume that we only process IPv4 now.
-// 		if !l.IP.Is4() {
-// 			log.Debug("dnsforward: skipping invalid ip from dhcp: bad ipv4 net.IP %v", l.IP)
-
-// 			continue
-// 		}
-
-// 		leaseIP := l.IP
-
-// 		ipToHost[leaseIP] = lowhost
-// 		hostToIP[lowhost] = leaseIP
-// 	}
-
-// 	s.setTableHostToIP(hostToIP)
-// 	s.setTableIPToHost(ipToHost)
-
-// 	log.Debug("dnsforward: added %d a and ptr entries from dhcp", len(ipToHost))
-// }

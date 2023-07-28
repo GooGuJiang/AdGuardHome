@@ -18,7 +18,6 @@ import (
 	"github.com/insomniacslk/dhcp/dhcpv6"
 	"github.com/insomniacslk/dhcp/dhcpv6/server6"
 	"github.com/insomniacslk/dhcp/iana"
-	"golang.org/x/exp/slices"
 )
 
 const valueIAID = "ADGH" // value for IANA.ID
@@ -27,15 +26,14 @@ const valueIAID = "ADGH" // value for IANA.ID
 //
 // TODO(a.garipov): Think about unifying this and v4Server.
 type v6Server struct {
-	srv        *server6.Server
-	leasesLock sync.Mutex
-	leases     []*Lease
-	ipAddrs    [256]byte
-	sid        dhcpv6.DUID
-
-	ra raCtx // RA module
-
+	ra   raCtx
 	conf V6ServerConf
+	sid  dhcpv6.DUID
+	srv  *server6.Server
+
+	leases     []*Lease
+	leasesLock sync.Mutex
+	ipAddrs    [256]byte
 }
 
 // WriteDiskConfig4 - write configuration
@@ -79,18 +77,13 @@ func (s *v6Server) IPByHost(host string) (ip netip.Addr) {
 	s.leasesLock.Lock()
 	defer s.leasesLock.Unlock()
 
-	// TODO(e.burkov):  !! use index
-	slices.IndexFunc(s.leases, func(l *Lease) bool {
+	for _, l := range s.leases {
 		if l.Hostname == host {
-			ip = l.IP
-
-			return true
+			return l.IP
 		}
+	}
 
-		return false
-	})
-
-	return ip
+	return netip.Addr{}
 }
 
 // ResetLeases resets leases.
