@@ -265,10 +265,9 @@ func (s *StatsCtx) Update(e *Entry) {
 		return
 	}
 
-	if e.Result == 0 || e.Result >= resultLast || e.Domain == "" || e.Client == "" {
-		log.Debug("stats: malformed entry")
-
-		return
+	err := e.validate()
+	if err != nil {
+		log.Debug("stats: updating: validating entry: %s", err)
 	}
 
 	s.currMu.Lock()
@@ -412,6 +411,12 @@ func (s *StatsCtx) flush() (cont bool, sleepFor time.Duration) {
 		return true, time.Second
 	}
 
+	return s.flushDB(id, limit, ptr)
+}
+
+// flushDB flushes the unit to the database.  confMu and currMu are expected to
+// be locked.
+func (s *StatsCtx) flushDB(id, limit uint32, ptr *unit) (cont bool, sleepFor time.Duration) {
 	db := s.db.Load()
 	if db == nil {
 		return true, 0

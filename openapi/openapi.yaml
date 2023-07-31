@@ -1750,8 +1750,8 @@
           'maxItems': 100
         'top_upstreams_avg_time':
           'type': 'array'
-          'description': 'Average processing time in seconds of requests from
-            each upstream.'
+          'description': >
+            Average processing time in seconds of requests from each upstream.
           'items':
             '$ref': '#/components/schemas/TopArrayEntry'
           'maxItems': 100
@@ -1774,12 +1774,13 @@
     'TopArrayEntry':
       'type': 'object'
       'description': >
-        Represent the number of hits per key (domain or client IP).
+        Represent the number of hits or time duration per key (url, domain, or
+        client IP).
       'properties':
         'domain_or_ip':
-          'type': 'integer'
+          'type': 'number'
       'additionalProperties':
-          'type': 'integer'
+          'type': 'number'
     'StatsConfig':
       'type': 'object'
       'description': 'Statistics configuration'

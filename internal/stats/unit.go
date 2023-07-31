@@ -78,6 +78,22 @@ type Entry struct {
 	Time time.Duration
 }
 
+// validate returs an error if entry is not valid.
+func (e *Entry) validate() (err error) {
+	switch {
+	case e.Result == 0:
+		return errors.Error("result code is not set")
+	case e.Result >= resultLast:
+		return fmt.Errorf("unknown result code %d", e.Result)
+	case e.Domain == "":
+		return errors.Error("domain is empty")
+	case e.Client == "":
+		return errors.Error("client is empty")
+	default:
+		return nil
+	}
+}
+
 // unit collects the statistics data for a specific period of time.
 type unit struct {
 	// domains stores the number of requests for each domain.
@@ -452,6 +468,16 @@ func (s *StatsCtx) getData(limit uint32) (StatsResp, bool) {
 		log.Fatalf("len(dnsQueries) != limit: %d %d", len(dnsQueries), limit)
 	}
 
+	return s.dataFromUnits(units, dnsQueries, firstID, timeUnit), true
+}
+
+// dataFromUnits collects and returns the statistics data.
+func (s *StatsCtx) dataFromUnits(
+	units []*unitDB,
+	dnsQueries []uint64,
+	firstID uint32,
+	timeUnit TimeUnit,
+) (resp StatsResp) {
 	topUpstreamsResponses, topUpstreamsAvgTime := topUpstreamsPairs(units)
 
 	data := StatsResp{
@@ -492,7 +518,7 @@ func (s *StatsCtx) getData(limit uint32) (StatsResp, bool) {
 	if timeN != 0 {
 		// NOTE:  Converting from microseconds to seconds for compatibility
 		// reasons.
-		data.AvgProcessingTime = float64(sum.TimeAvg/timeN) / float64(time.Millisecond)
+		data.AvgProcessingTime = float64(sum.TimeAvg/timeN) / 1_000_000
 	}
 
 	data.TimeUnits = "hours"
@@ -500,7 +526,7 @@ func (s *StatsCtx) getData(limit uint32) (StatsResp, bool) {
 		data.TimeUnits = "days"
 	}
 
-	return data, true
+	return data
 }
 
 func topClientPairs(s *StatsCtx) (pg pairsGetter) {
@@ -531,8 +557,7 @@ func topUpstreamsPairs(
 		}
 
 		for _, cp := range u.UpstreamsTimeSum {
-			// Convert from microseconds to seconds and calculate the sum.
-			upstreamsTimeSum[cp.Name] += float64(cp.Count) / float64(time.Millisecond)
+			upstreamsTimeSum[cp.Name] += float64(cp.Count)
 		}
 	}
 
@@ -542,7 +567,9 @@ func topUpstreamsPairs(
 		total := upstreamsTimeSum[u]
 
 		if total != 0 {
-			upstreamsAvgTime[u] = total / float64(n)
+			// Calculate the average and convert it from microseconds to
+			// seconds.
+			upstreamsAvgTime[u] = total / float64(n) / 1_000_000
 		}
 	}
 
