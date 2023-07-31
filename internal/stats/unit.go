@@ -516,9 +516,7 @@ func (s *StatsCtx) dataFromUnits(
 	data.NumReplacedParental = sum.NResult[RParental]
 
 	if timeN != 0 {
-		// NOTE:  Converting from microseconds to seconds for compatibility
-		// reasons.
-		data.AvgProcessingTime = float64(sum.TimeAvg/timeN) / 1_000_000
+		data.AvgProcessingTime = microsecondsToSeconds(float64(sum.TimeAvg / timeN))
 	}
 
 	data.TimeUnits = "hours"
@@ -567,9 +565,7 @@ func topUpstreamsPairs(
 		total := upstreamsTimeSum[u]
 
 		if total != 0 {
-			// Calculate the average and convert it from microseconds to
-			// seconds.
-			upstreamsAvgTime[u] = total / float64(n) / 1_000_000
+			upstreamsAvgTime[u] = microsecondsToSeconds(total / float64(n))
 		}
 	}
 
@@ -577,6 +573,16 @@ func topUpstreamsPairs(
 	topUpstreamsResponses = convertTopSlice(upstreamsPairs)
 
 	return topUpstreamsResponses, prepareTopUpstreamsAvgTime(upstreamsAvgTime)
+}
+
+// microsecondsToSeconds converts microseconds to seconds.
+//
+// NOTE:  Frontend expects time duration in seconds as floating-point number
+// with double precision.
+func microsecondsToSeconds(n float64) (r float64) {
+	const micro = 1e-6
+
+	return n * micro
 }
 
 // prepareTopUpstreamsAvgTime returns sorted list of average processing times

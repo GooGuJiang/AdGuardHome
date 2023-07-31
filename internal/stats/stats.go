@@ -268,6 +268,8 @@ func (s *StatsCtx) Update(e *Entry) {
 	err := e.validate()
 	if err != nil {
 		log.Debug("stats: updating: validating entry: %s", err)
+
+		return
 	}
 
 	s.currMu.Lock()
