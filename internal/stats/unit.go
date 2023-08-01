@@ -15,9 +15,6 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-// TODO(a.garipov): Rewrite all of this.  Add proper error handling and
-// inspection.  Improve logging.  Decrease complexity.
-
 const (
 	// maxDomains is the max number of top domains to return.
 	maxDomains = 100

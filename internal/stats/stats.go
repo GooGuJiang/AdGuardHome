@@ -225,7 +225,7 @@ func (s *StatsCtx) Start() {
 	go s.periodicFlush()
 }
 
-// Close implements the io.Closer interface for *StatsCtx.
+// Close implements the [io.Closer] interface for *StatsCtx.
 func (s *StatsCtx) Close() (err error) {
 	defer func() { err = errors.Annotate(err, "stats: closing: %w") }()
 
@@ -256,7 +256,8 @@ func (s *StatsCtx) Close() (err error) {
 	return udb.flushUnitToDB(tx, s.curr.id)
 }
 
-// Update implements the Interface interface for *StatsCtx.  e must not be nil.
+// Update implements the [Interface] interface for *StatsCtx.  e must not be
+// nil.
 func (s *StatsCtx) Update(e *Entry) {
 	s.confMu.Lock()
 	defer s.confMu.Unlock()
@@ -289,7 +290,7 @@ func (s *StatsCtx) Update(e *Entry) {
 	s.curr.add(e)
 }
 
-// WriteDiskConfig implements the Interface interface for *StatsCtx.
+// WriteDiskConfig implements the [Interface] interface for *StatsCtx.
 func (s *StatsCtx) WriteDiskConfig(dc *Config) {
 	s.confMu.RLock()
 	defer s.confMu.RUnlock()
