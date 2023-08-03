@@ -5,7 +5,6 @@ package stats
 import (
 	"fmt"
 	"io"
-	"net"
 	"net/netip"
 	"os"
 	"sync"
@@ -280,11 +279,6 @@ func (s *StatsCtx) Update(e *Entry) {
 		log.Error("stats: current unit is nil")
 
 		return
-	}
-
-	clientID := e.Client
-	if ip := net.ParseIP(clientID); ip != nil {
-		e.Client = ip.String()
 	}
 
 	s.curr.add(e)
