@@ -25,6 +25,7 @@ NOTE: Add new changes BELOW THIS COMMENT.
 
 ### Added
 
+- The ability to filter DNS HTTPS records ([#6053]).
 - The ability to set the port for the `pprof` debug API, see configuration
   changes below.
 
@@ -52,6 +53,8 @@ In this release, the schema version has changed from 24 to 25.
   Note that the new default `6060` is used as default.  To rollback this change,
   remove the new object `pprof`, set back `debug_pprof`, and change the
   `schema_version` back to `24`.
+
+[#6053]: https://github.com/AdguardTeam/AdGuardHome/issues/6053
 
 <!--
 NOTE: Add new changes ABOVE THIS COMMENT.
