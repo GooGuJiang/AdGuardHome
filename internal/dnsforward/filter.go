@@ -66,6 +66,8 @@ func (s *Server) clientRequestFilteringSettings(dctx *dnsContext) (setts *filter
 
 // filterDNSRequest applies the dnsFilter and sets dctx.proxyCtx.Res if the
 // request was filtered.
+//
+// TODO(d.kolyshev): Filter HTTPS
 func (s *Server) filterDNSRequest(dctx *dnsContext) (res *filtering.Result, err error) {
 	pctx := dctx.proxyCtx
 	req := pctx.Req
@@ -176,19 +178,26 @@ func (s *Server) filterDNSResponse(
 		case *dns.CNAME:
 			host = strings.TrimSuffix(a.Target, ".")
 			rrtype = dns.TypeCNAME
+
+			res, err = s.checkHostRules(host, rrtype, setts)
 		case *dns.A:
 			host = a.A.String()
 			rrtype = dns.TypeA
+
+			res, err = s.checkHostRules(host, rrtype, setts)
 		case *dns.AAAA:
 			host = a.AAAA.String()
 			rrtype = dns.TypeAAAA
+
+			res, err = s.checkHostRules(host, rrtype, setts)
+		case *dns.SVCB:
+			res, err = s.filterHTTPSRecords(a, setts)
 		default:
 			continue
 		}
 
-		log.Debug("dnsforward: checking %s %s for %s", dns.Type(rrtype), host, a.Header().Name)
+		log.Debug("dnsforward: checked %s %s for %s", dns.Type(rrtype), host, a.Header().Name)
 
-		res, err = s.checkHostRules(host, rrtype, setts)
 		if err != nil {
 			return nil, err
 		} else if res == nil {
@@ -197,6 +206,52 @@ func (s *Server) filterDNSResponse(
 			pctx.Res = s.genDNSFilterMessage(pctx, res)
 			log.Debug("dnsforward: matched %q by response: %q", pctx.Req.Question[0].Name, host)
 
+			return res, nil
+		}
+	}
+
+	return nil, nil
+}
+
+// filterHTTPSRecords filters HTTPS answers information through all rule list
+// filters of the server filters.
+func (s *Server) filterHTTPSRecords(
+	rr *dns.SVCB,
+	setts *filtering.Settings,
+) (r *filtering.Result, err error) {
+	for _, kv := range rr.Value {
+		switch kv.Key() {
+		case dns.SVCB_IPV4HINT, dns.SVCB_IPV6HINT:
+			r, err = s.filterSVCBHint(kv.String(), setts)
+			if err != nil {
+				// Don't wrap the error, since it's informative enough as is.
+				return nil, err
+			}
+
+			if r != nil {
+				return r, nil
+			}
+		default:
+			// Go on.
+		}
+	}
+
+	return nil, nil
+}
+
+// filterSVCBHint filters SVCB hint information.
+func (s *Server) filterSVCBHint(
+	hint string,
+	setts *filtering.Settings,
+) (res *filtering.Result, err error) {
+	for _, h := range strings.Split(hint, ",") {
+		res, err = s.checkHostRules(h, dns.TypeHTTPS, setts)
+		if err != nil {
+			// Don't wrap the error, since it's informative enough as is.
+			return nil, err
+		}
+
+		if res != nil && res.IsFiltered {
 			return res, nil
 		}
 	}
