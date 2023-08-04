@@ -78,6 +78,10 @@ func TestHandleDNSRequest_handleDNSRequest(t *testing.T) {
 		name    string
 		wantAns []dns.RR
 	}{{
+		req:     createTestMessage(aghtest.ReqFQDN),
+		name:    "pass",
+		wantAns: nil,
+	}, {
 		req:  createTestMessage("cname.exception."),
 		name: "cname_exception",
 		wantAns: []dns.RR{&dns.CNAME{
@@ -146,6 +150,17 @@ func TestHandleDNSRequest_handleDNSRequest(t *testing.T) {
 		wantAns: []dns.RR{&dns.A{
 			Hdr: dns.RR_Header{
 				Name:   "duplicate.domain.",
+				Rrtype: dns.TypeA,
+				Class:  dns.ClassINET,
+			},
+			A: netutil.IPv4Zero(),
+		}},
+	}, {
+		req:  createTestMessageWithType("blocked.first.", dns.TypeHTTPS),
+		name: "blocked_https_req",
+		wantAns: []dns.RR{&dns.A{
+			Hdr: dns.RR_Header{
+				Name:   "blocked.first.",
 				Rrtype: dns.TypeA,
 				Class:  dns.ClassINET,
 			},

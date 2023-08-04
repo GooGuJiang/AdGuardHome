@@ -58,7 +58,8 @@ func (s *Server) genDNSFilterMessage(
 	res *filtering.Result,
 ) (resp *dns.Msg) {
 	req := dctx.Req
-	if qt := req.Question[0].Qtype; qt != dns.TypeA && qt != dns.TypeAAAA {
+	qt := req.Question[0].Qtype
+	if qt != dns.TypeA && qt != dns.TypeAAAA && qt != dns.TypeHTTPS {
 		if s.conf.BlockingMode == BlockingModeNullIP {
 			return s.makeResponse(req)
 		}
@@ -92,6 +93,8 @@ func (s *Server) genForBlockingMode(req *dns.Msg, ips []net.IP) (resp *dns.Msg) 
 			return s.genARecord(req, s.conf.BlockingIPv4)
 		case dns.TypeAAAA:
 			return s.genAAAARecord(req, s.conf.BlockingIPv6)
+		case dns.TypeHTTPS:
+			return s.genARecord(req, s.conf.BlockingIPv4)
 		default:
 			// Generally shouldn't happen, since the types are checked in
 			// genDNSFilterMessage.
@@ -220,6 +223,10 @@ func (s *Server) genResponseWithIPs(req *dns.Msg, ips []net.IP) (resp *dns.Msg) 
 		for _, ip := range ips {
 			ans = append(ans, s.genAnswerAAAA(req, ip.To16()))
 		}
+	case dns.TypeHTTPS:
+		for _, ip := range ips {
+			ans = append(ans, s.genAnswerA(req, ip))
+		}
 	default:
 		// Go on and return an empty response.
 	}
@@ -242,6 +249,8 @@ func (s *Server) makeResponseNullIP(req *dns.Msg) (resp *dns.Msg) {
 		resp = s.genResponseWithIPs(req, []net.IP{{0, 0, 0, 0}})
 	case dns.TypeAAAA:
 		resp = s.genResponseWithIPs(req, []net.IP{net.IPv6zero})
+	case dns.TypeHTTPS:
+		resp = s.genResponseWithIPs(req, []net.IP{{0, 0, 0, 0}})
 	default:
 		resp = s.makeResponse(req)
 	}

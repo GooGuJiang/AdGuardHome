@@ -66,8 +66,6 @@ func (s *Server) clientRequestFilteringSettings(dctx *dnsContext) (setts *filter
 
 // filterDNSRequest applies the dnsFilter and sets dctx.proxyCtx.Res if the
 // request was filtered.
-//
-// TODO(d.kolyshev): Filter HTTPS
 func (s *Server) filterDNSRequest(dctx *dnsContext) (res *filtering.Result, err error) {
 	pctx := dctx.proxyCtx
 	req := pctx.Req
