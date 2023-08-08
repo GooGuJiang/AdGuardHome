@@ -184,7 +184,7 @@ func (s *Server) filterDNSResponse(
 			rrtype = dns.TypeAAAA
 
 			res, err = s.checkHostRules(host, rrtype, setts)
-		case *dns.SVCB:
+		case *dns.HTTPS:
 			res, err = s.filterHTTPSRecords(a, setts)
 		default:
 			continue
@@ -210,7 +210,7 @@ func (s *Server) filterDNSResponse(
 // filterHTTPSRecords filters HTTPS answers information through all rule list
 // filters of the server filters.
 func (s *Server) filterHTTPSRecords(
-	rr *dns.SVCB,
+	rr *dns.HTTPS,
 	setts *filtering.Settings,
 ) (r *filtering.Result, err error) {
 	for _, kv := range rr.Value {

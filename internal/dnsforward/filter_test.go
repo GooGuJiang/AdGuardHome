@@ -260,66 +260,46 @@ func TestHandleDNSRequest_filterDNSResponse(t *testing.T) {
 		name:     "ipv4hint",
 		req:      createTestMessageWithType(aghtest.ReqFQDN, dns.TypeHTTPS),
 		wantRule: blockedIPv4Str,
-		respAns: []dns.RR{&dns.SVCB{
-			Hdr: dns.RR_Header{
-				Name:   aghtest.ReqFQDN,
-				Rrtype: dns.TypeHTTPS,
-				Class:  dns.ClassINET,
-			},
-			Target: aghtest.ReqFQDN,
-			Value: []dns.SVCBKeyValue{
+		respAns: newSVCBHintsAnswer(
+			aghtest.ReqFQDN,
+			[]dns.SVCBKeyValue{
 				&dns.SVCBIPv4Hint{Hint: []net.IP{blockedIPv4}},
 				&dns.SVCBIPv6Hint{Hint: []net.IP{}},
 			},
-		}},
+		),
 	}, {
 		name:     "ipv6hint",
 		req:      createTestMessageWithType(aghtest.ReqFQDN, dns.TypeHTTPS),
 		wantRule: blockedIPv6Str,
-		respAns: []dns.RR{&dns.SVCB{
-			Hdr: dns.RR_Header{
-				Name:   aghtest.ReqFQDN,
-				Rrtype: dns.TypeHTTPS,
-				Class:  dns.ClassINET,
-			},
-			Target: aghtest.ReqFQDN,
-			Value: []dns.SVCBKeyValue{
+		respAns: newSVCBHintsAnswer(
+			aghtest.ReqFQDN,
+			[]dns.SVCBKeyValue{
 				&dns.SVCBIPv4Hint{Hint: []net.IP{}},
 				&dns.SVCBIPv6Hint{Hint: []net.IP{blockedIPv6}},
 			},
-		}},
+		),
 	}, {
 		name:     "ipv4_ipv6_hints",
 		req:      createTestMessageWithType(aghtest.ReqFQDN, dns.TypeHTTPS),
 		wantRule: blockedIPv4Str,
-		respAns: []dns.RR{&dns.SVCB{
-			Hdr: dns.RR_Header{
-				Name:   aghtest.ReqFQDN,
-				Rrtype: dns.TypeHTTPS,
-				Class:  dns.ClassINET,
-			},
-			Target: aghtest.ReqFQDN,
-			Value: []dns.SVCBKeyValue{
+		respAns: newSVCBHintsAnswer(
+			aghtest.ReqFQDN,
+			[]dns.SVCBKeyValue{
 				&dns.SVCBIPv4Hint{Hint: []net.IP{blockedIPv4}},
 				&dns.SVCBIPv6Hint{Hint: []net.IP{blockedIPv6}},
 			},
-		}},
+		),
 	}, {
 		name:     "pass_hints",
 		req:      createTestMessageWithType(aghtest.ReqFQDN, dns.TypeHTTPS),
 		wantRule: "",
-		respAns: []dns.RR{&dns.SVCB{
-			Hdr: dns.RR_Header{
-				Name:   aghtest.ReqFQDN,
-				Rrtype: dns.TypeHTTPS,
-				Class:  dns.ClassINET,
-			},
-			Target: aghtest.ReqFQDN,
-			Value: []dns.SVCBKeyValue{
+		respAns: newSVCBHintsAnswer(
+			aghtest.ReqFQDN,
+			[]dns.SVCBKeyValue{
 				&dns.SVCBIPv4Hint{Hint: []net.IP{passedIPv4}},
 				&dns.SVCBIPv6Hint{Hint: []net.IP{}},
 			},
-		}},
+		),
 	}}
 
 	for _, tc := range testCases {
@@ -355,4 +335,19 @@ func TestHandleDNSRequest_filterDNSResponse(t *testing.T) {
 			assert.Equal(t, want, res)
 		})
 	}
+}
+
+// newSVCBHintsAnswer returns a test HTTPS answer RRs with SVCB hints.
+func newSVCBHintsAnswer(target string, hints []dns.SVCBKeyValue) (rrs []dns.RR) {
+	return []dns.RR{&dns.HTTPS{
+		SVCB: dns.SVCB{
+			Hdr: dns.RR_Header{
+				Name:   target,
+				Rrtype: dns.TypeHTTPS,
+				Class:  dns.ClassINET,
+			},
+			Target: target,
+			Value:  hints,
+		},
+	}}
 }
