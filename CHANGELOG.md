@@ -25,7 +25,7 @@ NOTE: Add new changes BELOW THIS COMMENT.
 
 ### Added
 
-- The ability to filter DNS HTTPS records ([#6053]).
+- The ability to filter DNS HTTPS records including IPv4/v6 hints. ([#6053]).
 - The ability to set the port for the `pprof` debug API, see configuration
   changes below.
 

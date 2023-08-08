@@ -10,11 +10,13 @@ import (
 	"github.com/AdguardTeam/golibs/log"
 )
 
-// ReqHost is the common request host for filtering tests.
-const ReqHost = "www.host.example"
+const (
+	// ReqHost is the common request host for filtering tests.
+	ReqHost = "www.host.example"
 
-// ReqFQDN is the common request FQDN for filtering tests.
-const ReqFQDN = ReqHost + "."
+	// ReqFQDN is the common request FQDN for filtering tests.
+	ReqFQDN = ReqHost + "."
+)
 
 // ReplaceLogWriter moves logger output to w and uses Cleanup method of t to
 // revert changes.
