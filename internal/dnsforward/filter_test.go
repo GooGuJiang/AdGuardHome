@@ -216,14 +216,13 @@ func TestHandleDNSRequest_filterDNSResponse(t *testing.T) {
 	require.NoError(t, err)
 
 	testCases := []struct {
+		req      *dns.Msg
 		name     string
-		reqFQDN  string
 		wantRule string
 		respAns  []dns.RR
-		qType    uint16
 	}{{
 		name:     "pass",
-		reqFQDN:  aghtest.ReqFQDN,
+		req:      createTestMessageWithType(aghtest.ReqFQDN, dns.TypeA),
 		wantRule: "",
 		respAns: []dns.RR{&dns.A{
 			Hdr: dns.RR_Header{
@@ -233,10 +232,9 @@ func TestHandleDNSRequest_filterDNSResponse(t *testing.T) {
 			},
 			A: passedIPv4,
 		}},
-		qType: dns.TypeA,
 	}, {
 		name:     "ipv4",
-		reqFQDN:  aghtest.ReqFQDN,
+		req:      createTestMessageWithType(aghtest.ReqFQDN, dns.TypeA),
 		wantRule: blockedIPv4Str,
 		respAns: []dns.RR{&dns.A{
 			Hdr: dns.RR_Header{
@@ -246,10 +244,9 @@ func TestHandleDNSRequest_filterDNSResponse(t *testing.T) {
 			},
 			A: blockedIPv4,
 		}},
-		qType: dns.TypeA,
 	}, {
 		name:     "ipv6",
-		reqFQDN:  aghtest.ReqFQDN,
+		req:      createTestMessageWithType(aghtest.ReqFQDN, dns.TypeAAAA),
 		wantRule: blockedIPv6Str,
 		respAns: []dns.RR{&dns.AAAA{
 			Hdr: dns.RR_Header{
@@ -259,10 +256,9 @@ func TestHandleDNSRequest_filterDNSResponse(t *testing.T) {
 			},
 			AAAA: blockedIPv6,
 		}},
-		qType: dns.TypeAAAA,
 	}, {
 		name:     "ipv4hint",
-		reqFQDN:  aghtest.ReqFQDN,
+		req:      createTestMessageWithType(aghtest.ReqFQDN, dns.TypeHTTPS),
 		wantRule: blockedIPv4Str,
 		respAns: []dns.RR{&dns.SVCB{
 			Hdr: dns.RR_Header{
@@ -276,10 +272,9 @@ func TestHandleDNSRequest_filterDNSResponse(t *testing.T) {
 				&dns.SVCBIPv6Hint{Hint: []net.IP{}},
 			},
 		}},
-		qType: dns.TypeHTTPS,
 	}, {
 		name:     "ipv6hint",
-		reqFQDN:  aghtest.ReqFQDN,
+		req:      createTestMessageWithType(aghtest.ReqFQDN, dns.TypeHTTPS),
 		wantRule: blockedIPv6Str,
 		respAns: []dns.RR{&dns.SVCB{
 			Hdr: dns.RR_Header{
@@ -293,10 +288,9 @@ func TestHandleDNSRequest_filterDNSResponse(t *testing.T) {
 				&dns.SVCBIPv6Hint{Hint: []net.IP{blockedIPv6}},
 			},
 		}},
-		qType: dns.TypeHTTPS,
 	}, {
 		name:     "ipv4_ipv6_hints",
-		reqFQDN:  aghtest.ReqFQDN,
+		req:      createTestMessageWithType(aghtest.ReqFQDN, dns.TypeHTTPS),
 		wantRule: blockedIPv4Str,
 		respAns: []dns.RR{&dns.SVCB{
 			Hdr: dns.RR_Header{
@@ -310,10 +304,9 @@ func TestHandleDNSRequest_filterDNSResponse(t *testing.T) {
 				&dns.SVCBIPv6Hint{Hint: []net.IP{blockedIPv6}},
 			},
 		}},
-		qType: dns.TypeHTTPS,
 	}, {
 		name:     "pass_hints",
-		reqFQDN:  aghtest.ReqFQDN,
+		req:      createTestMessageWithType(aghtest.ReqFQDN, dns.TypeHTTPS),
 		wantRule: "",
 		respAns: []dns.RR{&dns.SVCB{
 			Hdr: dns.RR_Header{
@@ -327,17 +320,15 @@ func TestHandleDNSRequest_filterDNSResponse(t *testing.T) {
 				&dns.SVCBIPv6Hint{Hint: []net.IP{}},
 			},
 		}},
-		qType: dns.TypeHTTPS,
 	}}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			req := createTestMessageWithType(tc.reqFQDN, tc.qType)
-			resp := newResp(dns.RcodeSuccess, req, tc.respAns)
+			resp := newResp(dns.RcodeSuccess, tc.req, tc.respAns)
 
 			pctx := &proxy.DNSContext{
 				Proto: proxy.ProtoUDP,
-				Req:   req,
+				Req:   tc.req,
 				Res:   resp,
 				Addr:  &net.UDPAddr{IP: net.IP{127, 0, 0, 1}, Port: 1},
 			}
